@@ -14,8 +14,15 @@ const SignalBars: React.FC<SignalBarsProps> = ({ gpsSignalLevel }) => {
   // Optimization: Moved constant array outside or use static range
   const BAR_RANGE = [1, 2, 3, 4];
 
+  const signalDescription = gpsSignalLevel === 'lost' ? 'No GPS Signal' : `GPS Signal: ${gpsSignalLevel}`;
+
   return (
-    <div className="flex items-end gap-0.5 h-3">
+    <div
+      className="flex items-end gap-0.5 h-3"
+      role="img"
+      aria-label={signalDescription}
+      title={signalDescription}
+    >
       {BAR_RANGE.map(i => (
         <div
           key={i}

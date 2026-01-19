@@ -60,6 +60,41 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   setWidgetPos,
   viewMode
 }) => {
+  const [showSyncSuccess, setShowSyncSuccess] = React.useState(false);
+  const [showClearedFeedback, setShowClearedFeedback] = React.useState(false);
+  const [showSavedFeedback, setShowSavedFeedback] = React.useState(false);
+
+  const onSync = async () => {
+    await handleManualSync();
+    setShowSyncSuccess(true);
+    setTimeout(() => setShowSyncSuccess(false), 3000);
+  };
+
+  const onClear = () => {
+    if (confirm('Clear all logs?')) {
+      clearLogs();
+      setLogCount(0);
+      setShowClearedFeedback(true);
+      setTimeout(() => setShowClearedFeedback(false), 3000);
+    }
+  };
+
+  const onSave = () => {
+    setShowSavedFeedback(true);
+    setTimeout(() => {
+        setShowSettings(false);
+        setShowSavedFeedback(false);
+    }, 800);
+
+    localStorage.setItem('alerts_enabled', alertsEnabled.toString());
+    localStorage.setItem('chimes_enabled', chimesEnabled.toString());
+    localStorage.setItem('alert_threshold', threshold.toString());
+    localStorage.setItem('data_logging_enabled', loggingEnabled.toString());
+    localStorage.setItem('show_police', showPolice.toString());
+    localStorage.setItem('show_context', showContext.toString());
+    localStorage.setItem('cloud_sync_enabled', cloudEnabled.toString());
+  };
+
   return (
     <div className={`fixed inset-x-0 bottom-0 bg-slate-900 border-t border-white/10 rounded-t-[3rem] p-10 z-50 transition-transform duration-500`}>
       <div className="w-16 h-2 bg-slate-800 rounded-full mx-auto mb-8 cursor-pointer" onClick={() => setShowSettings(false)}></div>
@@ -69,19 +104,31 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <h3 className="text-sm font-black text-white uppercase mb-4">Widget Settings</h3>
 
           <div className="flex justify-between items-center">
-            <span className="text-xs text-slate-400 font-bold">Lock Position</span>
-            <button onClick={() => setIsLocked(!isLocked)} className={`px-3 py-1 rounded text-xs font-bold ${isLocked ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-300'}`}>
+            <div>
+              <span className="text-xs text-slate-400 font-bold block">Lock Position</span>
+              <span className="text-[10px] text-slate-500">Disable widget dragging</span>
+            </div>
+            <button
+              onClick={() => setIsLocked(!isLocked)}
+              aria-label={isLocked ? "Unlock widget position" : "Lock widget position"}
+              className={`px-3 py-1 rounded text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isLocked ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-300'}`}
+            >
                 {isLocked ? 'LOCKED' : 'UNLOCKED'}
             </button>
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-xs text-slate-400 font-bold">Click-Through</span>
+            <div>
+              <span className="text-xs text-slate-400 font-bold block">Click-Through</span>
+              <span className="text-[10px] text-slate-500">Interact with apps behind widget</span>
+            </div>
             <button onClick={() => {
                 const newVal = !clickThrough;
                 setClickThrough(newVal);
                 localStorage.setItem('widget_click_through', String(newVal));
-            }} className={`px-3 py-1 rounded text-xs font-bold ${clickThrough ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300'}`}>
+            }}
+            aria-label={clickThrough ? "Disable click-through" : "Enable click-through"}
+            className={`px-3 py-1 rounded text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${clickThrough ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300'}`}>
                 {clickThrough ? 'ON' : 'OFF'}
             </button>
           </div>
@@ -187,8 +234,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     <div className="text-[10px] font-bold text-white truncate">{googleUser.name}</div>
                                     <button onClick={signOutDrive} className="text-[9px] text-red-400 hover:text-red-300 uppercase font-bold tracking-wider">Disconnect</button>
                                 </div>
-                                <button onClick={handleManualSync} disabled={isSyncing} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${isSyncing ? 'bg-slate-600 text-slate-400' : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}>
-                                    {isSyncing ? 'Syncing' : 'Sync Now'}
+                                <button
+                                  onClick={onSync}
+                                  disabled={isSyncing}
+                                  className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isSyncing ? 'bg-slate-600 text-slate-400' : showSyncSuccess ? 'bg-emerald-500 text-white' : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}
+                                >
+                                    {isSyncing ? 'Syncing...' : showSyncSuccess ? 'Synced!' : 'Sync Now'}
                                 </button>
                             </div>
                         ) : (
@@ -211,8 +262,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Export Archive
                 </button>
-                <button onClick={() => { if(confirm('Clear all logs?')) { clearLogs(); setLogCount(0); }}} className="px-4 py-3 bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400 rounded-xl font-bold text-sm transition-colors">
-                    Clear
+                <button onClick={onClear} className={`px-4 py-3 rounded-xl font-bold text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${showClearedFeedback ? 'bg-red-600 text-white' : 'bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400'}`}>
+                    {showClearedFeedback ? 'Cleared!' : 'Clear'}
                 </button>
             </div>
             <p className="text-[9px] text-slate-500 mt-3 text-center">
@@ -220,16 +271,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </p>
           </div>
 
-          <button onClick={() => {
-            setShowSettings(false);
-            localStorage.setItem('alerts_enabled', alertsEnabled.toString());
-            localStorage.setItem('chimes_enabled', chimesEnabled.toString());
-            localStorage.setItem('alert_threshold', threshold.toString());
-            localStorage.setItem('data_logging_enabled', loggingEnabled.toString());
-            localStorage.setItem('show_police', showPolice.toString());
-            localStorage.setItem('show_context', showContext.toString());
-            localStorage.setItem('cloud_sync_enabled', cloudEnabled.toString());
-          }} className="w-full py-5 bg-blue-600 text-white rounded-[2rem] font-black uppercase shadow-xl active:scale-[0.98] transition-transform">Save Preferences</button>
+          <button onClick={onSave} className={`w-full py-5 rounded-[2rem] font-black uppercase shadow-xl active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${showSavedFeedback ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white'}`}>
+            {showSavedFeedback ? 'Settings Saved!' : 'Save Preferences'}
+          </button>
         </div>
         </>
       )}
