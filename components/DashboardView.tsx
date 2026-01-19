@@ -87,10 +87,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
         <div className="flex gap-2">
-            <button onClick={() => setViewMode('widget')} className="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform">
+            <button
+              onClick={() => setViewMode('widget')}
+              aria-label="Switch to Widget Mode"
+              title="Widget Mode"
+              className="min-w-[44px] min-h-[44px] p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center justify-center"
+            >
                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
             </button>
-            <button onClick={() => setShowSettings(true)} className="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform">
+            <button
+              onClick={() => setShowSettings(true)}
+              aria-label="Open Settings"
+              title="Settings"
+              className="min-w-[44px] min-h-[44px] p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center justify-center"
+            >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
             </button>
         </div>
@@ -137,6 +147,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="relative h-2 w-full bg-slate-800 rounded-full overflow-hidden flex items-center mt-3">
             <div className="absolute left-0 w-1 h-full bg-blue-500 z-10 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+
+            {(!roadInfo.futureSegments || roadInfo.futureSegments.length === 0) && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[7px] font-black text-slate-500 uppercase tracking-[0.2em] animate-pulse">Scanning path for speed changes...</span>
+              </div>
+            )}
 
             {roadInfo.futureSegments?.map((seg, idx) => {
               const leftPos = Math.min((seg.distanceMiles / 5) * 100, 95);
