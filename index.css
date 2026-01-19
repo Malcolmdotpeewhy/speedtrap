@@ -1,0 +1,15 @@
+
+.dashboard-container {
+  transition: background-color 0.7s ease;
+}
+
+.dashboard-container.theme-critical { background-color: #dc2626; } /* bg-red-600 */
+.dashboard-container.theme-speeding { background-color: #450a0a; } /* bg-red-950 */
+.dashboard-container.theme-approaching { background-color: rgba(69, 10, 10, 0.6); } /* bg-amber-950/60? wait amber-950/60 is actually dark brown/orange */
+.dashboard-container.theme-normal { background-color: #020617; } /* bg-slate-950 */
+
+/* Optimization: Using CSS for transitions reduces JS work and style recalculations */
+:root {
+  --speed-color: #fff;
+}
+.text-speed { color: var(--speed-color); }
