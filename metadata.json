@@ -1,0 +1,7 @@
+{
+  "name": "Copy of SpeedLimit Pro",
+  "description": "A real-time speed monitoring app that compares your current speed with the local speed limit using Gemini-powered road intelligence and GPS data.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
