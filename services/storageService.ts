@@ -75,48 +75,38 @@ export const syncPendingLogs = async () => {
   if (!isAuthenticated()) return 0;
   
   let syncedCount = 0;
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(STORAGE_PREFIX)) {
-        try {
-            const val = localStorage.getItem(key);
-            if (val) {
-                const entry = JSON.parse(val) as LogEntry;
-                if (!entry.synced) {
-                    await uploadToDrive(entry.filename, JSON.stringify(entry, null, 2), entry.path);
-                    entry.synced = true;
-                    localStorage.setItem(key, JSON.stringify(entry));
-                    syncedCount++;
-                }
+  const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX));
+
+  for (const key of keys) {
+    try {
+        const val = localStorage.getItem(key);
+        if (val) {
+            const entry = JSON.parse(val) as LogEntry;
+            if (!entry.synced) {
+                await uploadToDrive(entry.filename, JSON.stringify(entry, null, 2), entry.path);
+                entry.synced = true;
+                localStorage.setItem(key, JSON.stringify(entry));
+                syncedCount++;
             }
-        } catch (e) {
-            console.error("Sync retry failed for", key, e);
         }
+    } catch (e) {
+        console.error("Sync retry failed for", key, e);
     }
   }
   return syncedCount;
 };
 
 export const getStoredLogsCount = (): number => {
-  let count = 0;
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(STORAGE_PREFIX)) {
-      count++;
-    }
-  }
-  return count;
+  // Optimization: Object.keys() is often faster than repeated localStorage.key(i) calls
+  // when we need to iterate over many keys.
+  return Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX)).length;
 };
 
 export const clearLogs = () => {
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(STORAGE_PREFIX)) {
-      keysToRemove.push(key);
-    }
-  }
-  keysToRemove.forEach(k => localStorage.removeItem(k));
+  // Optimization: Filter once and then remove.
+  Object.keys(localStorage)
+    .filter(key => key.startsWith(STORAGE_PREFIX))
+    .forEach(key => localStorage.removeItem(key));
 };
 
 export const exportData = () => {
