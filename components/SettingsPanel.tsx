@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import { GoogleUser } from '../services/googleDriveService';
-import { Cloud, Zap } from 'lucide-react';
+import { Cloud, Zap, Check } from 'lucide-react';
 
 // "Palette" requirement: 44x44px touch targets.
 // "UX" requirement: Clear focus rings.
@@ -73,6 +73,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         isLocked, setIsLocked,
         viewMode
     } = useApp();
+
+    const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
+
+    const handleExport = () => {
+        exportData();
+        setExportState('success');
+        setTimeout(() => setExportState('idle'), 2000);
+    };
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex justify-end animate-fade-in">
@@ -203,10 +211,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     </div>
                                     <div className="flex gap-2">
                                         <button
-                                            onClick={exportData}
-                                            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-3 rounded-lg min-h-[44px]"
+                                            onClick={handleExport}
+                                            className={`flex-1 text-white text-xs font-bold py-3 rounded-lg min-h-[44px] transition-all duration-300 flex items-center justify-center gap-2 ${
+                                                exportState === 'success' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-slate-700 hover:bg-slate-600'
+                                            }`}
                                         >
-                                            Export JSON
+                                            {exportState === 'success' ? (
+                                                <>
+                                                    <Check className="w-4 h-4" />
+                                                    <span>Exported!</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>Export JSON</span>
+                                                </>
+                                            )}
                                         </button>
                                         <button
                                             onClick={() => {
