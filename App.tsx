@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { AppProvider, useApp } from './contexts/AppProvider';
-import { initGoogleDrive, subscribeToAuthStatus, getCurrentUser, GoogleUser, signInToDrive, signOutDrive, syncPendingLogs, exportData, clearLogs, getStoredLogsCount } from './services/googleDriveService';
-import { clearLogs as clearStorageLogs, getStoredLogsCount as getLocalLogCount } from './services/storageService';
+import { initGoogleDrive, subscribeToAuthStatus, getCurrentUser, GoogleUser, signInToDrive, signOutDrive } from './services/googleDriveService';
+import { clearLogs as clearStorageLogs, getStoredLogsCount as getLocalLogCount, exportData, syncPendingLogs } from './services/storageService';
 
 // Lazy Components
 const DashboardView = React.lazy(() => import('./components/DashboardView'));

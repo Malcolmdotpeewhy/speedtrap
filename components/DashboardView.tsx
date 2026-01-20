@@ -1,51 +1,29 @@
 
 import React from 'react';
-import { RoadInfo } from '../services/geminiService';
+import { useApp } from '../contexts/AppProvider';
 import RoadBadge from './RoadBadge';
 import SignalBars from './SignalBars';
-import { Coordinates } from '../types';
 import { WidgetIcon, SettingsIcon } from './Icons';
 
-interface DashboardViewProps {
-  gpsData: {
-    speed: number;
-    bearing: number;
-    accuracy: number;
-    coords: Coordinates | null;
-  };
-  gpsSignalLevel: 'lost' | 'low' | 'medium' | 'high';
-  roadInfo: Partial<RoadInfo>;
-  isCached: boolean;
-  error: string | null;
-  isUpdating: boolean;
-  loggingEnabled: boolean;
-  showPolice: boolean;
-  showContext: boolean;
-  displayLimit: number;
-  isCritical: boolean;
-  isSpeeding: boolean;
-  isApproaching: boolean;
-  setViewMode: (mode: 'full' | 'widget') => void;
-  setShowSettings: (show: boolean) => void;
-}
+const DashboardView: React.FC = () => {
+  const {
+      gpsData,
+      gpsSignalLevel,
+      roadInfo,
+      isCached,
+      intelError: error,
+      isUpdating,
+      loggingEnabled,
+      showPolice,
+      showContext,
+      displayLimit,
+      isCritical,
+      isSpeeding,
+      isApproaching,
+      setViewMode,
+      setShowSettings
+  } = useApp();
 
-const DashboardView: React.FC<DashboardViewProps> = ({
-  gpsData,
-  gpsSignalLevel,
-  roadInfo,
-  isCached,
-  error,
-  isUpdating,
-  loggingEnabled,
-  showPolice,
-  showContext,
-  displayLimit,
-  isCritical,
-  isSpeeding,
-  isApproaching,
-  setViewMode,
-  setShowSettings
-}) => {
   // Theme logic mapping directly to Tailwind classes
   const themeClass = isCritical ? 'bg-red-600'
                    : isSpeeding ? 'bg-red-950'
