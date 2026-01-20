@@ -2,6 +2,7 @@ import React, { useRef, useCallback } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import RoadBadge from './RoadBadge';
 import SignalBars from './SignalBars';
+import GlassButton from './GlassButton';
 
 // 44x44px touch targets enforced.
 // Focus rings enforced.
@@ -91,7 +92,7 @@ const WidgetView: React.FC = () => {
 
           {/* Signal Indicator (Small) */}
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-black/50 px-2 py-0.5 rounded-full border border-white/10 flex items-center gap-1.5 backdrop-blur-md">
-             <SignalBars level={gpsSignalLevel} />
+             <SignalBars gpsSignalLevel={gpsSignalLevel} />
              {showPolice && roadInfo.policeDistrict && (
                  <span className="text-[8px] font-black text-blue-200 bg-blue-900/50 px-1 rounded">{roadInfo.policeDistrict}</span>
              )}
@@ -110,26 +111,36 @@ const WidgetView: React.FC = () => {
 
           {/* Limit */}
           <div className="flex-1 flex justify-center">
-             <RoadBadge limit={displayLimit} size="small" />
+             {/* RoadBadge doesn't support limit or size props, it expects 'type'. Using displayLimit might be incorrect here if it's a number, RoadBadge expects road type string.
+                 However, assuming the intention was to show the road type, I will pass the road type.
+                 If the intention was to show the limit, I should use a different component or update RoadBadge.
+                 Looking at DashboardView, RoadBadge takes 'type'.
+                 Wait, the limit is shown in the white box in Dashboard.
+                 Here in WidgetView, it tries to show limit using RoadBadge?
+                 Let's check RoadBadge implementation. It just shows an icon and text.
+                 It seems WidgetView wanted to show the Speed Limit.
+             */}
+             <div className="flex flex-col items-center justify-center bg-white border border-black rounded w-12 h-16 shadow-lg">
+                 <span className="text-[8px] font-black text-black uppercase tracking-tighter leading-none">LIMIT</span>
+                 <span className="text-2xl font-black text-black tabular-nums tracking-tighter leading-none">{displayLimit}</span>
+             </div>
           </div>
 
           {/* Controls Overlay (Only visible when not locked) */}
           {!isLocked && !clickThrough && (
              <div className="absolute -bottom-14 left-0 w-full flex justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity p-2">
-                 <button
+                 <GlassButton
                     onClick={() => setViewMode('full')}
-                    className="p-3 bg-black/80 rounded-full text-white hover:bg-black border border-white/10 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-blue-400"
-                    aria-label="Maximize to Dashboard"
-                 >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                 </button>
-                 <button
+                    label="Maximize to Dashboard"
+                    className="rounded-full bg-black/80 hover:bg-black"
+                    icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>}
+                 />
+                 <GlassButton
                     onClick={() => setShowSettings(true)}
-                    className="p-3 bg-black/80 rounded-full text-white hover:bg-black border border-white/10 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-blue-400"
-                    aria-label="Open Widget Settings"
-                 >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                 </button>
+                    label="Open Widget Settings"
+                    className="rounded-full bg-black/80 hover:bg-black"
+                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>}
+                 />
              </div>
           )}
       </div>

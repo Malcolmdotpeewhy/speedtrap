@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import { GoogleUser } from '../services/googleDriveService';
 import { Cloud, Zap, Check } from 'lucide-react';
+import GlassButton from './GlassButton';
 
 // "Palette" requirement: 44x44px touch targets.
 // "UX" requirement: Clear focus rings.
@@ -88,13 +89,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 {/* Header */}
                 <div className="sticky top-0 bg-slate-900/95 backdrop-blur z-10 border-b border-white/5 p-4 flex items-center justify-between">
                     <h2 className="text-xl font-black italic tracking-tighter text-white">SYSTEM<span className="text-blue-500">CONFIG</span></h2>
-                    <button
+                    <GlassButton
                         onClick={() => setShowSettings(false)}
-                        className="p-3 bg-slate-800 rounded-full hover:bg-slate-700 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:ring-2 focus-visible:ring-blue-400"
-                        aria-label="Close Settings"
-                    >
-                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+                        label="Close Settings"
+                        className="rounded-full bg-slate-800 hover:bg-slate-700 border-none"
+                        icon={<svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>}
+                    />
                 </div>
 
                 <div className="p-6 space-y-8">
