@@ -67,6 +67,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         isSyncing, handleManualSync,
         logCount, setLogCount,
         setShowSettings,
+        apiKey, setApiKey,
         // Widget specific
         opacity, setOpacity,
         scale, setScale,
@@ -190,6 +191,24 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                             </div>
                         </section>
                     )}
+
+                    {/* API Configuration */}
+                    <section className="space-y-4 border-t border-white/5 pt-6">
+                        <h3 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-2">API Configuration</h3>
+                        <div className="p-4 bg-slate-800/50 rounded-xl space-y-2">
+                            <label className="block text-sm font-bold text-slate-300">Gemini API Key</label>
+                            <input
+                                type="password"
+                                value={apiKey}
+                                onChange={(e) => setApiKey(e.target.value)}
+                                placeholder="Enter your Gemini API Key"
+                                className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:border-blue-500 focus:outline-none min-h-[44px]"
+                            />
+                            <p className="text-[10px] text-slate-500">
+                                Required for Speed Limits & Road Info. Your key is stored locally on this device.
+                            </p>
+                        </div>
+                    </section>
 
                     {/* Data Section */}
                     <section className="space-y-4 border-t border-white/5 pt-6">

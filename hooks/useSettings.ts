@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { resetAI } from '../services/geminiService';
 
 export const useSettings = () => {
   const initialPrefs = useMemo(() => ({
@@ -12,6 +13,7 @@ export const useSettings = () => {
     opacity: Number(localStorage.getItem('widget_opacity')) || 1,
     scale: Number(localStorage.getItem('widget_scale')) || 1,
     clickThrough: localStorage.getItem('widget_click_through') === 'true',
+    apiKey: localStorage.getItem('gemini_api_key') || '',
     widgetPos: (() => {
       const saved = localStorage.getItem('widget_position');
       return saved ? JSON.parse(saved) : { x: 20, y: 60 };
@@ -29,8 +31,13 @@ export const useSettings = () => {
   const [scale, setScale] = useState<number>(initialPrefs.scale);
   const [clickThrough, setClickThrough] = useState<boolean>(initialPrefs.clickThrough);
   const [widgetPos, setWidgetPos] = useState(initialPrefs.widgetPos);
+  const [apiKey, setApiKey] = useState<string>(initialPrefs.apiKey);
 
   // Persistence Effects
+  useEffect(() => {
+    localStorage.setItem('gemini_api_key', apiKey);
+    resetAI();
+  }, [apiKey]);
   useEffect(() => localStorage.setItem('alert_threshold', String(threshold)), [threshold]);
   useEffect(() => localStorage.setItem('alerts_enabled', String(alertsEnabled)), [alertsEnabled]);
   useEffect(() => localStorage.setItem('chimes_enabled', String(chimesEnabled)), [chimesEnabled]);
@@ -54,6 +61,7 @@ export const useSettings = () => {
     opacity, setOpacity,
     scale, setScale,
     clickThrough, setClickThrough,
-    widgetPos, setWidgetPos
+    widgetPos, setWidgetPos,
+    apiKey, setApiKey
   };
 };
