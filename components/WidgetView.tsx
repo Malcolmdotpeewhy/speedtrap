@@ -1,11 +1,8 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
-import RoadBadge from './RoadBadge';
 import SignalBars from './SignalBars';
 import GlassButton from './GlassButton';
-
-// 44x44px touch targets enforced.
-// Focus rings enforced.
+import { Menu, Maximize2, Settings } from 'lucide-react';
 
 const WidgetView: React.FC = () => {
   const {
@@ -27,14 +24,13 @@ const WidgetView: React.FC = () => {
     setWidgetPos
   } = useApp();
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const isDragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const lastTouchMoveTime = useRef(0);
 
-  // --- Drag Handling (Re-implemented locally or using context actions if they existed, but context has setWidgetPos) ---
-  // Since drag logic relies on event objects, we'll keep the handlers here but update the state via context.
-
-  const handleTouchStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleDragStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     if (isLocked || clickThrough) return;
     isDragging.current = true;
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
@@ -42,7 +38,7 @@ const WidgetView: React.FC = () => {
     dragOffset.current = { x: clientX - widgetPos.x, y: clientY - widgetPos.y };
   }, [isLocked, clickThrough, widgetPos.x, widgetPos.y]);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const handleDragMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     if (!isDragging.current || isLocked || clickThrough) return;
 
     const now = Date.now();
@@ -63,7 +59,7 @@ const WidgetView: React.FC = () => {
     setWidgetPos({ x: newX, y: newY });
   }, [isLocked, clickThrough, setWidgetPos]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleDragEnd = useCallback(() => {
     isDragging.current = false;
   }, []);
 
@@ -80,66 +76,81 @@ const WidgetView: React.FC = () => {
           transform: `scale(${scale})`,
           pointerEvents: clickThrough ? 'none' : 'auto'
       }}
-      onTouchStart={handleTouchStart}
-      onMouseDown={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onMouseMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseUp={handleTouchEnd}
-      onMouseLeave={handleTouchEnd}
     >
-      <div className={`relative bg-slate-900/90 backdrop-blur-md rounded-[2.5rem] p-4 flex items-center gap-4 border-2 transition-all duration-300 ${borderColor} ${shadowColor} w-64`}>
+      <div className={`relative bg-slate-900/95 backdrop-blur-xl rounded-[2.5rem] p-4 flex flex-col items-center border-2 transition-all duration-300 ${borderColor} ${shadowColor} min-w-[280px]`}>
 
-          {/* Signal Indicator (Small) */}
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-black/50 px-2 py-0.5 rounded-full border border-white/10 flex items-center gap-1.5 backdrop-blur-md">
-             <SignalBars gpsSignalLevel={gpsSignalLevel} />
-             {showPolice && roadInfo.policeDistrict && (
-                 <span className="text-[8px] font-black text-blue-200 bg-blue-900/50 px-1 rounded">{roadInfo.policeDistrict}</span>
+          {/* Drag Handle (Top) */}
+          {!isLocked && !clickThrough && (
+            <div
+                className="w-full h-6 flex items-center justify-center cursor-move absolute top-0 left-0 rounded-t-[2.5rem]"
+                onTouchStart={handleDragStart}
+                onMouseDown={handleDragStart}
+                onTouchMove={handleDragMove}
+                onMouseMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+                aria-label="Drag Handle"
+            >
+                <div className="w-12 h-1 bg-white/20 rounded-full" />
+            </div>
+          )}
+
+          {/* Status Bar */}
+          <div className="flex items-center justify-between w-full mb-2 mt-2 px-2">
+             <div className="flex items-center gap-1.5">
+                <SignalBars gpsSignalLevel={gpsSignalLevel} />
+                {showPolice && roadInfo.policeDistrict && (
+                    <span className="text-[9px] font-black text-blue-200 bg-blue-900/50 px-1.5 py-0.5 rounded tracking-wider">{roadInfo.policeDistrict}</span>
+                )}
+             </div>
+
+             {!isLocked && !clickThrough && (
+                 <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:bg-blue-500/20 text-white transition-colors touch-target-min"
+                    aria-label="Toggle Widget Menu"
+                 >
+                    <Menu size={16} />
+                 </button>
              )}
           </div>
 
-          {/* Current Speed */}
-          <div className="flex-1 text-center">
-            <div className={`text-6xl font-black tracking-tighter tabular-nums leading-none ${isSpeeding ? 'text-red-50' : 'text-white'}`}>
-                {Math.round(gpsData.speed)}
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 tracking-[0.3em]">MPH</div>
+          <div className="flex items-center justify-between w-full gap-4">
+              {/* Current Speed */}
+              <div className="flex-1 text-center pl-2">
+                <div className={`text-7xl font-black tracking-tighter tabular-nums leading-none ${isSpeeding ? 'text-red-50' : 'text-white'}`}>
+                    {Math.round(gpsData.speed)}
+                </div>
+                <div className="text-[11px] font-bold text-slate-400 tracking-[0.3em] uppercase">MPH</div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-[1px] h-16 bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
+
+              {/* Limit */}
+              <div className="flex-1 flex justify-center pr-2">
+                 <div className="stark-limit-sign w-16 h-20 rounded-lg">
+                     <span className="text-[9px] font-black text-black uppercase tracking-tighter leading-none mb-0.5">LIMIT</span>
+                     <span className="text-4xl font-black text-black tabular-nums tracking-tighter leading-none">{displayLimit}</span>
+                 </div>
+              </div>
           </div>
 
-          {/* Divider */}
-          <div className="w-[1px] h-12 bg-white/10"></div>
-
-          {/* Limit */}
-          <div className="flex-1 flex justify-center">
-             {/* RoadBadge doesn't support limit or size props, it expects 'type'. Using displayLimit might be incorrect here if it's a number, RoadBadge expects road type string.
-                 However, assuming the intention was to show the road type, I will pass the road type.
-                 If the intention was to show the limit, I should use a different component or update RoadBadge.
-                 Looking at DashboardView, RoadBadge takes 'type'.
-                 Wait, the limit is shown in the white box in Dashboard.
-                 Here in WidgetView, it tries to show limit using RoadBadge?
-                 Let's check RoadBadge implementation. It just shows an icon and text.
-                 It seems WidgetView wanted to show the Speed Limit.
-             */}
-             <div className="flex flex-col items-center justify-center bg-white border border-black rounded w-12 h-16 shadow-lg">
-                 <span className="text-[8px] font-black text-black uppercase tracking-tighter leading-none">LIMIT</span>
-                 <span className="text-2xl font-black text-black tabular-nums tracking-tighter leading-none">{displayLimit}</span>
-             </div>
-          </div>
-
-          {/* Controls Overlay (Only visible when not locked) */}
-          {!isLocked && !clickThrough && (
-             <div className="absolute -bottom-14 left-0 w-full flex justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity p-2">
+          {/* Collapsible Menu */}
+          {menuOpen && !isLocked && !clickThrough && (
+             <div className="w-full flex justify-center gap-3 mt-4 animate-in slide-in-from-top-2 fade-in duration-200 border-t border-white/5 pt-3">
                  <GlassButton
                     onClick={() => setViewMode('full')}
-                    label="Maximize to Dashboard"
-                    className="rounded-full bg-black/80 hover:bg-black"
-                    icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>}
+                    label="Maximize"
+                    className="flex-1 rounded-xl bg-slate-800 hover:bg-slate-700 h-10 min-h-[44px]"
+                    icon={<Maximize2 size={18} />}
                  />
                  <GlassButton
                     onClick={() => setShowSettings(true)}
-                    label="Open Widget Settings"
-                    className="rounded-full bg-black/80 hover:bg-black"
-                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>}
+                    label="Settings"
+                    className="flex-1 rounded-xl bg-slate-800 hover:bg-slate-700 h-10 min-h-[44px]"
+                    icon={<Settings size={18} />}
                  />
              </div>
           )}
