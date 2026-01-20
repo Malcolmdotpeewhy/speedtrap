@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  base: './', // Ensure relative paths for APK/PWA compatibility
   define: {
      'process.env': {}
   }
