@@ -1,9 +1,10 @@
 import React from 'react';
 import { useApp } from '../contexts/AppProvider';
 import RoadBadge from './RoadBadge';
-import SignalBars from './SignalBars';
 import { WidgetIcon, SettingsIcon } from './Icons';
 import PathForecast from './PathForecast';
+import SystemStatus from './SystemStatus';
+import GlassButton from './GlassButton';
 
 const DashboardView: React.FC = () => {
   const {
@@ -35,57 +36,26 @@ const DashboardView: React.FC = () => {
 
       <div className="flex justify-between items-start z-20">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black italic tracking-tighter text-white">DRIVE<span className="text-blue-500">PRO</span></h1>
-            {isCached && (
-              <span className="flex items-center gap-1 text-[9px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest transition-all duration-500">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Cached
-              </span>
-            )}
-            {gpsError && gpsError.includes('Quota') && <span className="text-[8px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-black uppercase tracking-widest animate-pulse">OFFLINE</span>}
-            {gpsSignalLevel === 'lost' && <span className="text-[8px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-black uppercase tracking-widest animate-pulse">GPS LOST</span>}
-          </div>
-          <div className="flex items-center gap-4 mt-1">
-            <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isUpdating ? 'bg-blue-400 animate-ping' : gpsError && gpsError.includes('Quota') ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                {isUpdating ? 'Gemini Syncing...' : gpsError ? gpsError : 'Local Engine'}
-                </span>
-            </div>
-
-            <div className="flex items-center gap-2 pl-4 border-l border-white/10">
-                <SignalBars gpsSignalLevel={gpsSignalLevel} />
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-wider ${gpsData.accuracy > 50 ? 'text-red-400' : 'text-slate-400'}`}>
-                    ±{Math.round(gpsData.accuracy)}m
-                </span>
-            </div>
-
-            {loggingEnabled && (
-               <div className="flex items-center gap-1 ml-2 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded animate-pulse">
-                 <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                 <span className="text-[8px] font-black text-red-400 uppercase tracking-wider">REC</span>
-               </div>
-            )}
-          </div>
+          <SystemStatus
+            isCached={isCached}
+            gpsError={gpsError}
+            gpsSignalLevel={gpsSignalLevel}
+            isUpdating={isUpdating}
+            gpsAccuracy={gpsData.accuracy}
+            loggingEnabled={loggingEnabled}
+          />
         </div>
         <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode('widget')}
-              aria-label="Switch to Widget Mode"
-              title="Widget Mode"
-              className="min-w-[44px] min-h-[44px] p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center justify-center"
-            >
-               <WidgetIcon className="w-5 h-5 text-white" />
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              aria-label="Open Settings"
-              title="Settings"
-              className="min-w-[44px] min-h-[44px] p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center justify-center"
-            >
-              <SettingsIcon className="w-5 h-5 text-white" />
-            </button>
+          <GlassButton
+            onClick={() => setViewMode('widget')}
+            label="Switch to Widget Mode"
+            icon={<WidgetIcon className="w-5 h-5 text-white" />}
+          />
+          <GlassButton
+            onClick={() => setShowSettings(true)}
+            label="Open Settings"
+            icon={<SettingsIcon className="w-5 h-5 text-white" />}
+          />
         </div>
       </div>
 
