@@ -8,15 +8,20 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "apk:setup": "bash setup-apk.sh",
+    "apk:build": "bash build-apk.sh"
   },
   "dependencies": {
+    "@capacitor/core": "^8.0.1",
     "@google/genai": "^1.37.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.0.1",
+    "@capacitor/cli": "^8.0.1",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.14.0",

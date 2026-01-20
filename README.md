@@ -69,9 +69,29 @@ This project is built with **React 19**, **Tailwind CSS v4**, and **Vite**, offe
 
 ## 📱 Converting to Android APK
 
-You can easily convert this web application into a native Android APK using **Capacitor**. This allows you to install it on your phone and run it as a standalone app.
+We provide "One Click Install" scripts to make converting this web application into a native Android APK extremely easy using **Capacitor**.
 
-### Step 1: Initialize Capacitor
+### Option 1: One-Click Scripts
+
+1.  **Setup Environment**:
+    Run this once to install dependencies and initialize the Android platform.
+    ```bash
+    npm run apk:setup
+    ```
+
+2.  **Build APK**:
+    Run this whenever you want to build a new APK from your latest code.
+    ```bash
+    npm run apk:build
+    ```
+    *   *If you have the Android SDK installed*: This will generate an APK at `android/app/build/outputs/apk/debug/app-debug.apk`.
+    *   *If you do NOT have the SDK*: It will guide you to open Android Studio (`npx cap open android`) where you can just click "Build > Build APK".
+
+### Option 2: Manual Setup
+
+If you prefer to run the commands yourself:
+
+#### Step 1: Initialize Capacitor
 
 First, verify that `vite.config.ts` includes `base: './'`, which ensures assets load correctly in an offline app environment. (This is already configured in this repo).
 
@@ -89,7 +109,7 @@ npx cap init DrivePro com.example.drivepro
 # Select "npm" as your package manager when prompted.
 ```
 
-### Step 2: Add Android Platform
+#### Step 2: Add Android Platform
 
 Install the Android platform packages:
 
@@ -98,7 +118,7 @@ npm install @capacitor/android
 npx cap add android
 ```
 
-### Step 3: Build the Web App
+#### Step 3: Build the Web App
 
 Build your React project to generate the static files in `dist/`:
 
@@ -106,7 +126,7 @@ Build your React project to generate the static files in `dist/`:
 npm run build
 ```
 
-### Step 4: Sync with Android
+#### Step 4: Sync with Android
 
 Copy the web assets to the Android project:
 
@@ -114,7 +134,7 @@ Copy the web assets to the Android project:
 npx cap sync
 ```
 
-### Step 5: Build APK in Android Studio
+#### Step 5: Build APK in Android Studio
 
 Open the Android project in Android Studio:
 
