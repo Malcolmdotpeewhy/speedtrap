@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useState } from 'react';
 import { useGPS, GpsData, GpsSignalLevel } from '../hooks/useGPS';
 import { useRoadIntelligence } from '../hooks/useRoadIntelligence';
 import { useSettings } from '../hooks/useSettings';

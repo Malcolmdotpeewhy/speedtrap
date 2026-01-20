@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { AppProvider, useApp } from './contexts/AppProvider';
-import { initGoogleDrive, subscribeToAuthStatus, getCurrentUser, GoogleUser, signInToDrive, signOutDrive, syncPendingLogs, exportData, clearLogs, getStoredLogsCount } from './services/googleDriveService';
-import { clearLogs as clearStorageLogs, getStoredLogsCount as getLocalLogCount } from './services/storageService';
+import { initGoogleDrive, subscribeToAuthStatus, getCurrentUser, GoogleUser, signInToDrive, signOutDrive } from './services/googleDriveService';
+import { clearLogs as clearStorageLogs, getStoredLogsCount as getLocalLogCount, syncPendingLogs, exportData } from './services/storageService';
 
 // Lazy Components
 const DashboardView = React.lazy(() => import('./components/DashboardView'));
@@ -11,21 +11,6 @@ const SettingsPanel = React.lazy(() => import('./components/SettingsPanel'));
 const AppContent: React.FC = () => {
     const { viewMode, showSettings, isSyncing, handleManualSync, isGoogleSignedIn, googleUser, setLogCount } = useApp();
     
-    // Wire up storage service functions to AppProvider context
-    // The SettingsPanel expects these as props or gets them from context.
-    // In our refactor, we made SettingsPanel use Context, but some actions like sign-in/out are external services.
-    // Ideally, we wrap these in the Provider or pass them.
-    // In the current `SettingsPanel` implementation (Step 7), it uses `useApp()` to get state,
-    // but receives actions like `signInToDrive` as props? No, wait.
-    // Let's re-check `SettingsPanel.tsx`.
-    // It imports `signInToDrive`, `signOutDrive` via props interface `SettingsPanelProps`.
-    // BUT the refactored code (in Step 7 content) also extracts them from `useApp`?
-    // Looking at Step 7 `write_file` content:
-    // It defines `SettingsPanelProps` with functions.
-    // It destructures state from `useApp`.
-    // It destructures functions from `props`.
-    // So we need to pass these functions to `SettingsPanel`.
-
     return (
         <Suspense fallback={
             <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-4">
