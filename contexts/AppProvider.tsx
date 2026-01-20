@@ -19,6 +19,7 @@ interface AppContextType {
   scale: number; setScale: (v: number) => void;
   clickThrough: boolean; setClickThrough: (v: boolean) => void;
   widgetPos: { x: number, y: number }; setWidgetPos: (v: { x: number, y: number }) => void;
+  apiKey: string; setApiKey: (v: string) => void;
 
   // GPS
   gpsData: GpsData;
