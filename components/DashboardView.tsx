@@ -59,7 +59,7 @@ const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      <div className={`mt-8 bg-black/40 backdrop-blur-2xl border rounded-[2rem] p-6 shadow-2xl relative overflow-hidden transition-colors duration-700 ${isCached ? 'border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]' : 'border-white/5'}`}>
+      <div className={`mt-8 stark-glass-panel rounded-[2rem] p-6 relative overflow-hidden transition-colors duration-700 ${isCached ? 'border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]' : 'border-white/5'}`}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
             <RoadBadge type={roadInfo.roadType || 'Scanning'} />
@@ -80,15 +80,10 @@ const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        <h2 className="text-2xl font-black truncate leading-tight tracking-tight mb-2">{roadInfo.roadName}</h2>
-
-        <div className="flex items-center gap-2 mt-1 mb-2">
-          <span className="text-[9px] font-mono text-blue-400/80 uppercase tracking-widest font-bold">Engine: {roadInfo.confidence || 'Detecting'}</span>
-          <div className="flex-1 h-[1px] bg-white/5" />
-        </div>
+        <h2 className="type-headline-large truncate mb-2">{roadInfo.roadName || 'Scanning Road...'}</h2>
 
         {showContext && (
-          <p className="text-[11px] font-bold text-slate-300 leading-snug italic opacity-80 border-l-2 border-blue-500 pl-2">
+          <p className="text-[14px] font-bold text-slate-300 leading-snug italic opacity-80 border-l-2 border-blue-500 pl-2 mt-2">
             {roadInfo.context}
           </p>
         )}
@@ -97,34 +92,35 @@ const DashboardView: React.FC = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center relative">
+        {/* Speed Ring */}
         <div className={`relative w-[340px] h-[340px] rounded-full border-[16px] flex flex-col items-center justify-center transition-all duration-500 ${
-          isCritical ? 'border-white scale-105' :
-          isSpeeding ? 'border-red-500' :
+          isCritical ? 'border-white scale-105 shadow-[0_0_50px_rgba(255,255,255,0.2)]' :
+          isSpeeding ? 'border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)]' :
           isApproaching ? 'border-amber-500 scale-[0.98]' :
           'border-slate-800'
         }`}>
-          <span className={`text-[140px] font-black tracking-tighter tabular-nums leading-none transition-all duration-300 ${
+          <span className={`stark-display-speed text-[180px] transition-all duration-300 ${
             isApproaching ? 'text-amber-400 scale-95' : 'text-white'
           }`}>
-            {gpsData.speed}
+            {Math.round(gpsData.speed)}
           </span>
-          <span className="text-xl font-black uppercase tracking-[0.5em] text-slate-500">MPH</span>
+          <span className="type-label-small tracking-[0.5em] text-slate-500 mt-[-10px]">MPH</span>
         </div>
 
-        <div className={`absolute -bottom-10 bg-white rounded-2xl border-[10px] w-36 h-48 flex flex-col items-center justify-center shadow-2xl transition-all duration-500 ${
+        {/* Speed Limit Sign - Stark Regulatory Style */}
+        <div className={`absolute -bottom-10 stark-limit-sign w-40 h-52 rounded-2xl transition-all duration-500 ${
           isCritical ? 'border-red-600 scale-110' :
           isSpeeding ? 'border-red-600' :
           isApproaching ? 'border-amber-400 animate-pulse shadow-[0_0_40px_rgba(251,191,36,0.5)]' :
           'border-black'
         }`}>
-          <span className="text-black font-black text-[12px] uppercase tracking-tighter mb-2 text-center">SPEED<br/>LIMIT</span>
-          <span className="text-8xl font-black text-black tabular-nums tracking-tighter">{displayLimit}</span>
+          <span className="text-[14px] font-black uppercase tracking-tighter mb-2 text-center leading-none mt-2">SPEED<br/>LIMIT</span>
+          <span className="text-[100px] font-black tracking-tighter leading-none mb-4">{displayLimit}</span>
         </div>
       </div>
 
       <div className="mt-12 flex justify-between items-center opacity-30 text-[9px] font-mono">
-        <div>LOC: {gpsData.coords?.latitude.toFixed(4)}, {gpsData.coords?.longitude.toFixed(4)}</div>
-        <div className="text-right uppercase">Predictive Engine v5.4 • DB Cache Hybrid</div>
+        <div>LOC: {gpsData.coords?.latitude.toFixed(5)}, {gpsData.coords?.longitude.toFixed(5)}</div>
       </div>
     </div>
   );

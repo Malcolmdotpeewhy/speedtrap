@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .stark-glass-panel {
+    @apply bg-slate-900/90 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .stark-display-speed {
+    @apply text-9xl font-black tracking-tighter leading-none tabular-nums;
+  }
+
+  .stark-limit-sign {
+    @apply bg-white border-[6px] border-black text-black flex flex-col items-center justify-center shadow-lg;
+  }
+
+  /* Material 3 inspired Typography Scale */
+  .type-display-large {
+    @apply text-[57px] leading-[64px] tracking-[-0.25px];
+  }
+  .type-headline-large {
+    @apply text-[32px] leading-[40px] tracking-[0px] font-bold;
+  }
+  .type-body-large {
+    @apply text-[16px] leading-[24px] tracking-[0.5px];
+  }
+  .type-label-small {
+    @apply text-[11px] leading-[16px] tracking-[0.5px] font-medium uppercase;
+  }
+
+  /* Accessibility */
+  .touch-target-min {
+    @apply min-w-[44px] min-h-[44px];
+  }
+}
