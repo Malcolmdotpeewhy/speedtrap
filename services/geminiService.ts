@@ -1,8 +1,20 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string) || "dummy-key";
-const ai = new GoogleGenAI({ apiKey });
+let ai: any = null;
+
+const getAI = () => {
+  if (!ai) {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string);
+    // If no key, we can't initialize. But throwing here might crash callers if they don't catch.
+    // However, the original code crashed on top-level.
+    // We'll return null and handle it in getSpeedLimitAtLocation.
+    if (apiKey) {
+      ai = new GoogleGenAI({ apiKey });
+    }
+  }
+  return ai;
+};
 
 export interface PredictiveSegment {
   distanceMiles: number;
@@ -21,8 +33,14 @@ export interface RoadInfo {
 
 export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing: number, roadName?: string): Promise<RoadInfo> => {
   try {
+    const googleAI = getAI();
+    if (!googleAI) {
+      console.warn("Gemini API Key missing. Running in offline mode.");
+      throw new Error("API_KEY_MISSING");
+    }
+
     // Switching to gemini-2.5-flash to utilize Google Maps Grounding for precise road identification
-    const response = await ai.models.generateContent({
+    const response = await googleAI.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `You are a high-precision automotive route analyzer. 
       Location: (${lat}, ${lng}). Heading: ${bearing}° (approx). Current Road Trace: ${roadName || 'Scanning'}.
