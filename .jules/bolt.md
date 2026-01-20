@@ -1,0 +1,3 @@
+## 2026-01-20 - Robust Service Initialization & Render Optimization
+**Learning:** Services initializing external SDKs (like `GoogleGenAI`) at module scope can crash the entire application if environment variables are missing, blocking all rendering. Also, frequent GPS updates in the main dashboard trigger full re-renders, making inline visualization of static data (like road segments) expensive.
+**Action:** Lazy-initialize SDK clients inside functions or singletons rather than at top-level. Extract and memoize heavy visualizations that depend on stable data (road info) from components that depend on volatile data (GPS speed).
