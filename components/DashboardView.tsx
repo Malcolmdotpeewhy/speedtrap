@@ -4,6 +4,7 @@ import { RoadInfo } from '../services/geminiService';
 import RoadBadge from './RoadBadge';
 import SignalBars from './SignalBars';
 import { Coordinates } from '../types';
+import { WidgetIcon, SettingsIcon } from './Icons';
 
 interface DashboardViewProps {
   gpsData: {
@@ -45,10 +46,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   setViewMode,
   setShowSettings
 }) => {
-  const themeClass = isCritical ? 'theme-critical' : isSpeeding ? 'theme-speeding' : isApproaching ? 'theme-approaching' : 'theme-normal';
+  // Theme logic mapping directly to Tailwind classes
+  const themeClass = isCritical ? 'bg-red-600'
+                   : isSpeeding ? 'bg-red-950'
+                   : isApproaching ? 'bg-amber-950/60'
+                   : 'bg-slate-950';
 
   return (
-    <div className={`flex flex-col h-[100dvh] w-full transition-all duration-700 p-6 text-white overflow-hidden select-none dashboard-container ${themeClass}`}>
+    <div className={`flex flex-col h-[100dvh] w-full transition-colors duration-700 p-6 text-white overflow-hidden select-none dashboard-container ${themeClass}`}>
 
       <div className="flex justify-between items-start z-20">
         <div>
@@ -93,7 +98,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               title="Widget Mode"
               className="min-w-[44px] min-h-[44px] p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center justify-center"
             >
-               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+               <WidgetIcon className="w-5 h-5 text-white" />
             </button>
             <button
               onClick={() => setShowSettings(true)}
@@ -101,7 +106,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               title="Settings"
               className="min-w-[44px] min-h-[44px] p-3 bg-white/5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center justify-center"
             >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              <SettingsIcon className="w-5 h-5 text-white" />
             </button>
         </div>
       </div>
