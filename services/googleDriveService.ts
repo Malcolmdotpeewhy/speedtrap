@@ -15,6 +15,7 @@ let gapiInited = false;
 let gisInited = false;
 let accessToken: string | null = null;
 let currentUser: GoogleUser | null = null;
+const folderCache = new Map<string, string>();
 
 const authListeners: ((isAuth: boolean) => void)[] = [];
 
@@ -125,6 +126,7 @@ export const signInToDrive = () => {
 export const signOutDrive = () => {
     accessToken = null;
     currentUser = null;
+    folderCache.clear(); // Clear the cache on sign out
     localStorage.removeItem('drive_access_token');
     if ((window as any).gapi && (window as any).gapi.client) {
         (window as any).gapi.client.setToken(null);
@@ -138,6 +140,11 @@ export const isAuthenticated = () => {
 
 // Helper to find or create a folder
 export const getOrCreateFolder = async (folderName: string, parentId: string = 'root'): Promise<string> => {
+  const cacheKey = `${parentId}/${folderName}`;
+  if (folderCache.has(cacheKey)) {
+    return folderCache.get(cacheKey)!;
+  }
+
   try {
     const safeFolderName = folderName.replace(/'/g, "\\'");
     const q = `mimeType='application/vnd.google-apps.folder' and name='${safeFolderName}' and '${parentId}' in parents and trash=false`;
@@ -147,8 +154,9 @@ export const getOrCreateFolder = async (folderName: string, parentId: string = '
       spaces: 'drive',
     });
 
+    let folderId: string;
     if (response.result.files && response.result.files.length > 0) {
-      return response.result.files[0].id;
+      folderId = response.result.files[0].id;
     } else {
       const fileMetadata = {
         name: folderName,
@@ -159,8 +167,11 @@ export const getOrCreateFolder = async (folderName: string, parentId: string = '
         resource: fileMetadata,
         fields: 'id',
       });
-      return createResponse.result.id;
+      folderId = createResponse.result.id;
     }
+
+    folderCache.set(cacheKey, folderId);
+    return folderId;
   } catch (e) {
     console.error("Error getting/creating folder", e);
     throw e;
