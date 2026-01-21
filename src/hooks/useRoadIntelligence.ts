@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { getSpeedLimitAtLocation, RoadInfo, PredictiveSegment } from '../services/geminiService';
+import { getSpeedLimitAtLocation } from '../services/geminiService';
+import { RoadInfo } from '../types/serviceTypes';
 import { saveLog, getStoredLogsCount } from '../services/storageService';
 import { getCacheKey, calculateDistance } from '../utils/geoUtils';
-import { Coordinates } from '../types';
+import { Coordinates } from '../types/index';
 
 export const useRoadIntelligence = (
   gpsData: { speed: number; bearing: number; accuracy: number; coords: Coordinates | null },
@@ -30,6 +31,7 @@ export const useRoadIntelligence = (
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCached, setIsCached] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [logCount, setLogCount] = useState<number>(0);
 
@@ -108,13 +110,14 @@ export const useRoadIntelligence = (
         localStorage.setItem('last_road_info', JSON.stringify(result));
 
         if (loggingEnabled) {
-          const saveSuccess = await saveLog(result, { latitude: lat, longitude: lng }, currBearing, accuracy, cloudEnabled);
-          if (saveSuccess) setLogCount(prev => prev + 1);
+          await saveLog(result, { latitude: lat, longitude: lng }, currBearing, accuracy, cloudEnabled);
+          setLogCount(prev => prev + 1);
         }
       }
       lastFetchCoords.current = { latitude: lat, longitude: lng };
       lastFetchBearing.current = currBearing;
       setError(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       if (e.message === "QUOTA_EXCEEDED") {
           const cooldownSeconds = 60;
@@ -163,7 +166,7 @@ export const useRoadIntelligence = (
         lastFetchCoords.current = { latitude, longitude };
       }
     }
-  }, [gpsData, loggingEnabled, cloudEnabled]);
+  }, [gpsData, loggingEnabled, cloudEnabled, playMilestoneChime, roadInfo.futureSegments, roadInfo.roadName, persistCache]);
 
   return { roadInfo, lastValidLimit, isUpdating, isCached, error, logCount, setLogCount };
 };
