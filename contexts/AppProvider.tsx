@@ -111,7 +111,7 @@ export const AppProvider: React.FC<{
   const [viewMode, setViewMode] = useState<'full' | 'widget'>('full');
   const [showSettings, setShowSettings] = useState(false);
 
-  const value: AppContextType = {
+  const value: AppContextType = React.useMemo(() => ({
     ...settings,
     gpsData: gps.gpsData,
     gpsSignalLevel: gps.gpsSignalLevel,
@@ -130,7 +130,25 @@ export const AppProvider: React.FC<{
     isLocked, setIsLocked,
     viewMode, setViewMode,
     showSettings, setShowSettings
-  };
+  }), [
+    settings.threshold, settings.setThreshold,
+    settings.alertsEnabled, settings.setAlertsEnabled,
+    settings.chimesEnabled, settings.setChimesEnabled,
+    settings.loggingEnabled, settings.setLoggingEnabled,
+    settings.cloudEnabled, settings.setCloudEnabled,
+    settings.showPolice, settings.setShowPolice,
+    settings.showContext, settings.setShowContext,
+    settings.opacity, settings.setOpacity,
+    settings.scale, settings.setScale,
+    settings.clickThrough, settings.setClickThrough,
+    settings.widgetPos, settings.setWidgetPos,
+    settings.apiKey, settings.setApiKey,
+    gps.gpsData, gps.gpsSignalLevel, gps.error,
+    intelligence.roadInfo, intelligence.lastValidLimit, intelligence.isUpdating, intelligence.isCached, intelligence.error, intelligence.logCount, intelligence.setLogCount,
+    displayLimit, isSpeeding, isCritical, isApproaching, playBeep,
+    isGoogleSignedIn, googleUser, isSyncing, handleManualSync,
+    isLocked, setIsLocked, viewMode, setViewMode, showSettings, setShowSettings
+  ]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
