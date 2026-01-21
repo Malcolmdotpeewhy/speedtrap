@@ -1,0 +1,4 @@
+## 2025-05-24 - Google Drive Query Injection Fix
+**Vulnerability:** The `getOrCreateFolder` function in `services/googleDriveService.ts` constructed a query string using unescaped string interpolation (`name='${folderName}'`). This allowed an attacker or malicious input (e.g., a folder name with a single quote) to break the query syntax or potentially inject arbitrary filters.
+**Learning:** External APIs often have specific escaping requirements for their query languages that differ from standard SQL or URL encoding. Google Drive API requires escaping single quotes with a backslash.
+**Prevention:** Always sanitize or escape user inputs before embedding them in query strings for external APIs. When possible, use parameterized queries provided by the SDK, but if raw strings are required (as with Drive's `q` parameter), manually escape the specific characters defined in the API documentation.

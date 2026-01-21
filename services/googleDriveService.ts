@@ -137,9 +137,10 @@ export const isAuthenticated = () => {
 }
 
 // Helper to find or create a folder
-const getOrCreateFolder = async (folderName: string, parentId: string = 'root'): Promise<string> => {
+export const getOrCreateFolder = async (folderName: string, parentId: string = 'root'): Promise<string> => {
   try {
-    const q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and '${parentId}' in parents and trash=false`;
+    const safeFolderName = folderName.replace(/'/g, "\\'");
+    const q = `mimeType='application/vnd.google-apps.folder' and name='${safeFolderName}' and '${parentId}' in parents and trash=false`;
     const response = await (window as any).gapi.client.drive.files.list({
       q: q,
       fields: 'files(id, name)',
