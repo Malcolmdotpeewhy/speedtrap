@@ -177,9 +177,17 @@ export const syncPendingLogs = async () => {
 };
 
 export const getStoredLogsCount = (): number => {
+  const cachedCount = localStorage.getItem(LOG_COUNT_KEY);
+  if (cachedCount !== null) {
+    return parseInt(cachedCount, 10);
+  }
+
   // Optimization: Object.keys() is often faster than repeated localStorage.key(i) calls
   // when we need to iterate over many keys.
-  return Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX)).length;
+  const count = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX)).length;
+
+  localStorage.setItem(LOG_COUNT_KEY, count.toString());
+  return count;
 };
 
 export const clearLogs = () => {
