@@ -4,6 +4,7 @@ import { Coordinates, LogEntry } from '../types';
 import { uploadToDrive, isAuthenticated } from './googleDriveService';
 
 const STORAGE_PREFIX = 'Gemini_API_Data';
+const LOG_COUNT_KEY = 'Gemini_Logs_Count';
 
 export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: number, accuracy: number, cloudEnabled: boolean) => {
   const now = new Date();
@@ -45,6 +46,14 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
   // Step A: Immediate Local Fallback (Always save locally first)
   try {
     localStorage.setItem(fullKey, JSON.stringify(metadata));
+
+    // Update cached count if it exists
+    const countStr = localStorage.getItem(LOG_COUNT_KEY);
+    if (countStr !== null) {
+      const newCount = parseInt(countStr, 10) + 1;
+      localStorage.setItem(LOG_COUNT_KEY, newCount.toString());
+    }
+
     console.log(`[Storage] Saved locally to ${fullKey}`);
   } catch (e) {
     console.error("[Storage] Local Quota exceeded", e);
@@ -97,9 +106,17 @@ export const syncPendingLogs = async () => {
 };
 
 export const getStoredLogsCount = (): number => {
+  const cachedCount = localStorage.getItem(LOG_COUNT_KEY);
+  if (cachedCount !== null) {
+    return parseInt(cachedCount, 10);
+  }
+
   // Optimization: Object.keys() is often faster than repeated localStorage.key(i) calls
   // when we need to iterate over many keys.
-  return Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX)).length;
+  const count = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX)).length;
+
+  localStorage.setItem(LOG_COUNT_KEY, count.toString());
+  return count;
 };
 
 export const clearLogs = () => {
@@ -107,6 +124,8 @@ export const clearLogs = () => {
   Object.keys(localStorage)
     .filter(key => key.startsWith(STORAGE_PREFIX))
     .forEach(key => localStorage.removeItem(key));
+
+  localStorage.setItem(LOG_COUNT_KEY, '0');
 };
 
 export const exportData = () => {
