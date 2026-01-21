@@ -4,7 +4,67 @@ import { Coordinates, LogEntry } from '../types';
 import { uploadToDrive, isAuthenticated } from './googleDriveService';
 
 const STORAGE_PREFIX = 'Gemini_API_Data';
-const LOG_COUNT_KEY = 'Gemini_Logs_Count';
+const PENDING_KEYS_LIST = 'Gemini_Pending_Keys';
+const MIGRATION_KEY = 'Gemini_Migration_V1_Done';
+
+// Helper to manage pending keys list
+const getPendingKeys = (): string[] => {
+  try {
+    const val = localStorage.getItem(PENDING_KEYS_LIST);
+    return val ? JSON.parse(val) : [];
+  } catch {
+    return [];
+  }
+};
+
+const addPendingKey = (key: string) => {
+  const keys = getPendingKeys();
+  if (!keys.includes(key)) {
+    keys.push(key);
+    localStorage.setItem(PENDING_KEYS_LIST, JSON.stringify(keys));
+  }
+};
+
+const removePendingKey = (key: string) => {
+  let keys = getPendingKeys();
+  const index = keys.indexOf(key);
+  if (index > -1) {
+    keys.splice(index, 1);
+    localStorage.setItem(PENDING_KEYS_LIST, JSON.stringify(keys));
+  }
+};
+
+// Migration function to populate pending keys for existing data
+const migratePendingKeys = () => {
+    if (localStorage.getItem(MIGRATION_KEY)) return;
+
+    console.log("[Storage] Migrating pending logs to optimized list...");
+    const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX));
+    const pendingKeys: string[] = [];
+
+    for (const key of keys) {
+        try {
+            const val = localStorage.getItem(key);
+            if (val) {
+                const entry = JSON.parse(val) as LogEntry;
+                if (!entry.synced) {
+                    pendingKeys.push(key);
+                }
+            }
+        } catch {}
+    }
+
+    if (pendingKeys.length > 0) {
+        // Merge with existing if any (unlikely if migration hasn't run, but safe)
+        const current = getPendingKeys();
+        const combined = Array.from(new Set([...current, ...pendingKeys]));
+        localStorage.setItem(PENDING_KEYS_LIST, JSON.stringify(combined));
+    }
+
+    localStorage.setItem(MIGRATION_KEY, 'true');
+    console.log(`[Storage] Migration complete. Found ${pendingKeys.length} pending logs.`);
+};
+
 
 export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: number, accuracy: number, cloudEnabled: boolean) => {
   const now = new Date();
@@ -46,14 +106,9 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
   // Step A: Immediate Local Fallback (Always save locally first)
   try {
     localStorage.setItem(fullKey, JSON.stringify(metadata));
-
-    // Update cached count if it exists
-    const countStr = localStorage.getItem(LOG_COUNT_KEY);
-    if (countStr !== null) {
-      const newCount = parseInt(countStr, 10) + 1;
-      localStorage.setItem(LOG_COUNT_KEY, newCount.toString());
-    }
-
+    // Default to adding to pending keys. We remove it later if sync succeeds.
+    // This is safer than adding it only on failure, in case the process crashes before sync finishes.
+    addPendingKey(fullKey);
     console.log(`[Storage] Saved locally to ${fullKey}`);
   } catch (e) {
     console.error("[Storage] Local Quota exceeded", e);
@@ -70,10 +125,12 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
         metadata.synced = true;
         metadata.driveId = driveId;
         localStorage.setItem(fullKey, JSON.stringify(metadata));
+        // Remove from pending keys since it is now synced
+        removePendingKey(fullKey);
         console.log(`[Cloud] Sync Successful: ${driveId}`);
     } catch (e) {
         console.error("[Cloud] Upload failed, data remains locally buffered.", e);
-        // Data is already saved locally with synced: false, so it acts as the buffer.
+        // Data is already saved locally with synced: false and in pending keys.
     }
   }
 
@@ -83,21 +140,35 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
 export const syncPendingLogs = async () => {
   if (!isAuthenticated()) return 0;
   
+  // Ensure we have migrated old logs if necessary
+  migratePendingKeys();
+
   let syncedCount = 0;
-  const keys = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX));
+  // Use the optimized list
+  const keys = getPendingKeys();
 
   for (const key of keys) {
     try {
         const val = localStorage.getItem(key);
-        if (val) {
-            const entry = JSON.parse(val) as LogEntry;
-            if (!entry.synced) {
-                await uploadToDrive(entry.filename, JSON.stringify(entry, null, 2), entry.path);
-                entry.synced = true;
-                localStorage.setItem(key, JSON.stringify(entry));
-                syncedCount++;
-            }
+        // If key doesn't exist anymore, remove it from pending list
+        if (!val) {
+            removePendingKey(key);
+            continue;
         }
+
+        const entry = JSON.parse(val) as LogEntry;
+
+        // Double check synced status (in case it was updated elsewhere)
+        if (entry.synced) {
+             removePendingKey(key);
+             continue;
+        }
+
+        await uploadToDrive(entry.filename, JSON.stringify(entry, null, 2), entry.path);
+        entry.synced = true;
+        localStorage.setItem(key, JSON.stringify(entry));
+        removePendingKey(key);
+        syncedCount++;
     } catch (e) {
         console.error("Sync retry failed for", key, e);
     }
@@ -125,7 +196,9 @@ export const clearLogs = () => {
     .filter(key => key.startsWith(STORAGE_PREFIX))
     .forEach(key => localStorage.removeItem(key));
 
-  localStorage.setItem(LOG_COUNT_KEY, '0');
+  // Also clear pending keys list
+  localStorage.removeItem(PENDING_KEYS_LIST);
+  localStorage.removeItem(MIGRATION_KEY);
 };
 
 export const exportData = () => {
