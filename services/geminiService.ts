@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 let ai: any = null;
 
@@ -9,8 +9,7 @@ export const resetAI = () => {
 
 const getAI = () => {
   if (!ai) {
-    // @ts-ignore
-    const apiKey = localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || (process.env.API_KEY as string);
+    const apiKey = localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
     // If no key, we can't initialize. But throwing here might crash callers if they don't catch.
     // However, the original code crashed on top-level.
     // We'll return null and handle it in getSpeedLimitAtLocation.

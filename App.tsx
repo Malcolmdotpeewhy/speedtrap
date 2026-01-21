@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { AppProvider, useApp } from './contexts/AppProvider';
 import { initGoogleDrive, subscribeToAuthStatus, getCurrentUser, GoogleUser, signInToDrive, signOutDrive } from './services/googleDriveService';
-import { clearLogs as clearStorageLogs, getStoredLogsCount as getLocalLogCount, syncPendingLogs, exportData } from './services/storageService';
+import { clearLogs as clearStorageLogs, syncPendingLogs, exportData } from './services/storageService';
 
 // Lazy Components
 const DashboardView = React.lazy(() => import('./components/DashboardView'));
@@ -9,7 +9,7 @@ const WidgetView = React.lazy(() => import('./components/WidgetView'));
 const SettingsPanel = React.lazy(() => import('./components/SettingsPanel'));
 
 const AppContent: React.FC = () => {
-    const { viewMode, showSettings, isSyncing, handleManualSync, isGoogleSignedIn, googleUser, setLogCount } = useApp();
+    const { viewMode, showSettings, setLogCount } = useApp();
     
     return (
         <Suspense fallback={

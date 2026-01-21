@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
-import { GoogleUser } from '../services/googleDriveService';
-import { Cloud, Zap, Check } from 'lucide-react';
+import { Cloud, Check } from 'lucide-react';
 import GlassButton from './GlassButton';
 
 // "Palette" requirement: 44x44px touch targets.

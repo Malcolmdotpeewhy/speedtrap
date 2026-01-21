@@ -90,7 +90,7 @@ export const syncPendingLogs = async () => {
             }
         }
     } catch (e) {
-        console.error("Sync retry failed for", key, e);
+        console.error("Sync retry failed for", key, e); // Using 'e'
     }
   }
   return syncedCount;
@@ -132,7 +132,7 @@ export const exportData = () => {
             }
           });
         }
-      } catch (e) {
+      } catch {
         console.error("Error exporting key", key);
       }
     }
