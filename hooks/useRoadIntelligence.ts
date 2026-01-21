@@ -3,6 +3,7 @@ import { get, set } from 'idb-keyval';
 import { getSpeedLimitAtLocation, RoadInfo } from '../services/geminiService';
 import { saveLog, getStoredLogsCount } from '../services/storageService';
 import { getCacheKey, calculateDistance } from '../utils/geoUtils';
+import { idbGet, idbSet } from '../utils/indexedDB';
 import { Coordinates } from '../types';
 
 export const useRoadIntelligence = (
@@ -42,31 +43,37 @@ export const useRoadIntelligence = (
   const persistTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const hydrateCache = async () => {
-      try {
-        // Try IDB first
-        const savedCache = await get<Map<string, RoadInfo>>('road_intelligence_db_v2');
-        if (savedCache && savedCache instanceof Map) {
-          intelCache.current = savedCache;
-        } else {
-          // Migration from LocalStorage
-          const lsCache = localStorage.getItem('road_intelligence_db_v2');
-          if (lsCache) {
-            const parsed = JSON.parse(lsCache);
-            Object.entries(parsed).forEach(([key, val]) => {
-              intelCache.current.set(key, val as RoadInfo);
-            });
-            // Migrate to IDB
-            await set('road_intelligence_db_v2', intelCache.current);
-            localStorage.removeItem('road_intelligence_db_v2');
-          }
+    const loadCache = async () => {
+      // Migrate from localStorage if needed, then check IDB
+      const legacyCache = localStorage.getItem('road_intelligence_db_v2');
+      if (legacyCache) {
+        try {
+          const parsed = JSON.parse(legacyCache);
+          Object.entries(parsed).forEach(([key, val]) => {
+            intelCache.current.set(key, val as RoadInfo);
+          });
+          // Move to IDB and clear legacy
+          await idbSet('road_intelligence_db_v2', parsed);
+          localStorage.removeItem('road_intelligence_db_v2');
+        } catch (e) {
+          console.error("Legacy Cache Migration Failed", e);
         }
-      } catch (e) {
-        console.error("Cache Hydration Failed", e);
+      } else {
+        // Load from IDB
+        try {
+          const savedCache = await idbGet<Record<string, RoadInfo>>('road_intelligence_db_v2');
+          if (savedCache) {
+            Object.entries(savedCache).forEach(([key, val]) => {
+              intelCache.current.set(key, val);
+            });
+          }
+        } catch (e) {
+          console.error("IDB Cache Hydration Failed", e);
+        }
       }
     };
 
-    hydrateCache();
+    loadCache();
     setLogCount(getStoredLogsCount());
   }, []);
 
@@ -79,8 +86,10 @@ export const useRoadIntelligence = (
         const prunedEntries = entries.slice(-500);
         intelCache.current = new Map(prunedEntries);
       }
-      set('road_intelligence_db_v2', intelCache.current).catch(e =>
-        console.error("Failed to persist cache", e)
+      const obj = Object.fromEntries(intelCache.current);
+      // Non-blocking async write
+      idbSet('road_intelligence_db_v2', obj).catch(e =>
+        console.error("Failed to persist cache to IDB", e)
       );
     }, 2000);
   }, []);
