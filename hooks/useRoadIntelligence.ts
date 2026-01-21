@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { getSpeedLimitAtLocation, RoadInfo, PredictiveSegment } from '../services/geminiService';
+import { getSpeedLimitAtLocation, RoadInfo } from '../services/geminiService';
 import { saveLog, getStoredLogsCount } from '../services/storageService';
 import { getCacheKey, calculateDistance } from '../utils/geoUtils';
 import { Coordinates } from '../types';
@@ -163,6 +163,7 @@ export const useRoadIntelligence = (
         lastFetchCoords.current = { latitude, longitude };
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gpsData, loggingEnabled, cloudEnabled]);
 
   return { roadInfo, lastValidLimit, isUpdating, isCached, error, logCount, setLogCount };

@@ -132,7 +132,7 @@ export const exportData = () => {
             }
           });
         }
-      } catch (e) {
+      } catch {
         console.error("Error exporting key", key);
       }
     }
