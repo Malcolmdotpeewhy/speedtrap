@@ -231,13 +231,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleExport}
-                                            className={`flex-1 text-white text-xs font-bold py-3 rounded-lg min-h-[44px] transition-all duration-300 flex items-center justify-center gap-2 ${
+                                            className={`flex-1 text-white text-xs font-bold py-3 rounded-lg min-h-[44px] transition-all duration-300 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                                                 exportState === 'success' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-slate-700 hover:bg-slate-600'
                                             }`}
                                         >
                                             {exportState === 'success' ? (
                                                 <>
-                                                    <Check className="w-4 h-4" />
+                                                    <Check className="w-4 h-4" aria-hidden="true" />
                                                     <span>Exported!</span>
                                                 </>
                                             ) : (
@@ -253,7 +253,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                     setLogCount(0);
                                                 }
                                             }}
-                                            className="flex-1 bg-red-900/50 hover:bg-red-900 text-red-200 text-xs font-bold py-3 rounded-lg min-h-[44px]"
+                                            className="flex-1 bg-red-900/50 hover:bg-red-900 text-red-200 text-xs font-bold py-3 rounded-lg min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                         >
                                             Clear
                                         </button>
@@ -275,9 +275,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                              {!isGoogleSignedIn ? (
                                                  <button
                                                     onClick={signInToDrive}
-                                                    className="w-full bg-white text-black font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                                                    className="w-full bg-white text-black font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                                                  >
-                                                    <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
+                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
                                                     Sign In
                                                  </button>
                                              ) : (
@@ -292,7 +292,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                          </div>
                                                          <button
                                                             onClick={signOutDrive}
-                                                            className="text-xs text-red-400 hover:text-red-300 px-2 py-2 min-h-[44px]"
+                                                            className="text-xs text-red-400 hover:text-red-300 px-2 py-2 min-h-[44px] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                                          >
                                                              Sign Out
                                                          </button>
@@ -300,16 +300,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                      <button
                                                         onClick={handleManualSync}
                                                         disabled={isSyncing}
-                                                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px]"
+                                                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                                                      >
                                                          {isSyncing ? (
                                                              <>
-                                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
                                                                 Syncing...
                                                              </>
                                                          ) : (
                                                              <>
-                                                                <Cloud className="w-4 h-4" />
+                                                                <Cloud className="w-4 h-4" aria-hidden="true" />
                                                                 Sync Now
                                                              </>
                                                          )}
