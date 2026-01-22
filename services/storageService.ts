@@ -6,6 +6,7 @@ import { uploadToDrive, isAuthenticated } from './googleDriveService';
 const STORAGE_PREFIX = 'Gemini_API_Data';
 const PENDING_KEYS_LIST = 'Gemini_Pending_Keys';
 const MIGRATION_KEY = 'Gemini_Migration_V1_Done';
+const LOG_COUNT_KEY = 'Gemini_Logs_Count';
 
 // Helper to manage pending keys list
 const getPendingKeys = (): string[] => {
