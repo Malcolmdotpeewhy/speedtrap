@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { RoadInfo } from '../services/geminiService';
+import { RoadInfo } from '../types';
 
 // Simulate the data structure
 const generateCache = (count: number): Record<string, RoadInfo> => {

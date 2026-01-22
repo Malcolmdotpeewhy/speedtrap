@@ -1,5 +1,5 @@
 import React from 'react';
-import { RoadInfo } from '../services/geminiService';
+import { RoadInfo } from '../types';
 
 interface PathForecastProps {
   roadInfo: Partial<RoadInfo>;

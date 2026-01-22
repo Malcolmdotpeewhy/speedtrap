@@ -1,5 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { RoadInfo, PredictiveSegment } from "../types";
 
 let ai: GoogleGenAI | null = null;
 
@@ -17,33 +18,16 @@ const getAI = () => {
   return ai;
 };
 
-export interface PredictiveSegment {
-  distanceMiles: number;
-  limit: number;
+interface GeminiResponse {
+  limit?: number | null;
+  roadName?: string;
+  roadType?: string;
+  policeDistrict?: string;
+  why?: string;
+  futureSegments?: PredictiveSegment[];
 }
 
-export interface RoadInfo {
-  limit: number | null;
-  roadName: string;
-  roadType: string;
-  policeDistrict: string;
-  context: string;
-  confidence: string;
-  futureSegments: PredictiveSegment[];
-}
-
-export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing: number, roadName?: string): Promise<RoadInfo> => {
-  try {
-    const googleAI = getAI();
-    if (!googleAI) {
-      console.warn("Gemini API Key missing. Running in offline mode.");
-      throw new Error("API_KEY_MISSING");
-    }
-
-    // Using JSON mode for reliable parsing
-    const response = await googleAI.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `You are a high-precision automotive route analyzer. 
+const generatePrompt = (lat: number, lng: number, bearing: number, roadName?: string) => `You are a high-precision automotive route analyzer.
       Location: (${lat}, ${lng}). Heading: ${bearing}° (approx). Current Road Trace: ${roadName || 'Scanning'}.
 
       TASKS:
@@ -63,7 +47,20 @@ export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing:
         "policeDistrict": string,
         "why": string,
         "futureSegments": [{ "distanceMiles": number, "limit": number }]
-      }`,
+      }`;
+
+export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing: number, roadName?: string): Promise<RoadInfo> => {
+  try {
+    const googleAI = getAI();
+    if (!googleAI) {
+      console.warn("Gemini API Key missing. Running in offline mode.");
+      throw new Error("API_KEY_MISSING");
+    }
+
+    // Using JSON mode for reliable parsing
+    const response = await googleAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: generatePrompt(lat, lng, bearing, roadName),
       config: {
         responseMimeType: "application/json",
         tools: [{ googleSearch: {} }, { googleMaps: {} }],
@@ -79,7 +76,7 @@ export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing:
     });
 
     const text = response.text || "{}";
-    let data: any = {};
+    let data: GeminiResponse = {};
     try {
         data = JSON.parse(text);
     } catch (e) {

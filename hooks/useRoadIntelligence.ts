@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { get, set } from 'idb-keyval';
-import { getSpeedLimitAtLocation, RoadInfo } from '../services/geminiService';
+import { getSpeedLimitAtLocation } from '../services/geminiService';
+import { RoadInfo } from '../types';
 import { saveLog, getStoredLogsCount } from '../services/storageService';
 import { getCacheKey, calculateDistance } from '../utils/geoUtils';
 import { idbGet, idbSet } from '../utils/indexedDB';

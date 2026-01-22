@@ -1,20 +1,30 @@
 
-import { RoadInfo } from './geminiService';
-import { Coordinates, LogEntry } from '../types';
+import { Coordinates, LogEntry, RoadInfo } from '../types';
 import { uploadToDrive, isAuthenticated } from './googleDriveService';
 
 const STORAGE_PREFIX = 'Gemini_API_Data';
 const PENDING_KEYS_LIST = 'Gemini_Pending_Keys';
 const MIGRATION_KEY = 'Gemini_Migration_V1_Done';
+const LOG_COUNT_KEY = 'Gemini_Logs_Count';
 
 // Helper to manage pending keys list
 const getPendingKeys = (): string[] => {
   try {
     const val = localStorage.getItem(PENDING_KEYS_LIST);
-    return val ? JSON.parse(val) : [];
+    if (!val) return [];
+    const parsed = JSON.parse(val);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
+};
+
+const incrementLogCount = () => {
+    const countStr = localStorage.getItem(LOG_COUNT_KEY);
+    if (countStr) {
+        const count = parseInt(countStr, 10);
+        localStorage.setItem(LOG_COUNT_KEY, (count + 1).toString());
+    }
 };
 
 const addPendingKey = (key: string) => {
@@ -106,6 +116,7 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
   // Step A: Immediate Local Fallback (Always save locally first)
   try {
     localStorage.setItem(fullKey, JSON.stringify(metadata));
+    incrementLogCount();
     // Default to adding to pending keys. We remove it later if sync succeeds.
     // This is safer than adding it only on failure, in case the process crashes before sync finishes.
     addPendingKey(fullKey);
@@ -196,9 +207,10 @@ export const clearLogs = () => {
     .filter(key => key.startsWith(STORAGE_PREFIX))
     .forEach(key => localStorage.removeItem(key));
 
-  // Also clear pending keys list
+  // Also clear pending keys list and count
   localStorage.removeItem(PENDING_KEYS_LIST);
   localStorage.removeItem(MIGRATION_KEY);
+  localStorage.removeItem(LOG_COUNT_KEY);
 };
 
 export const exportData = () => {
