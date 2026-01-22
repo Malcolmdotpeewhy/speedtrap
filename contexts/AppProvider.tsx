@@ -3,7 +3,7 @@ import { useGPS, GpsData, GpsSignalLevel } from '../hooks/useGPS';
 import { useRoadIntelligence } from '../hooks/useRoadIntelligence';
 import { useSettings } from '../hooks/useSettings';
 import { playBeepTone } from '../utils/audioUtils';
-import { RoadInfo } from '../services/geminiService';
+import { RoadInfo } from '../types';
 import { GoogleUser } from '../services/googleDriveService';
 
 interface AppContextType {
@@ -70,7 +70,7 @@ export const AppProvider: React.FC<{
 }> = ({ children, isGoogleSignedIn, googleUser, isSyncing, handleManualSync }) => {
 
   const settings = useSettings();
-  const gps = useGPS(settings.loggingEnabled, settings.cloudEnabled);
+  const gps = useGPS();
 
   const playBeep = useCallback((freq: number, dur: number, gainVal: number = 0.08) => {
     if (!settings.alertsEnabled) return;
