@@ -146,9 +146,10 @@ export const syncPendingLogs = async () => {
   migratePendingKeys();
 
   let syncedCount = 0;
-  const keys = getPendingKeys();
+  const initialKeys = getPendingKeys();
+  const keysToRemove = new Set<string>();
 
-  for (const key of keys) {
+  for (const key of initialKeys) {
     try {
         let entry = await idbGet<LogEntry>(key, LOGS_STORE_NAME);
 
@@ -161,12 +162,12 @@ export const syncPendingLogs = async () => {
         }
 
         if (!entry) {
-            removePendingKey(key);
+            keysToRemove.add(key);
             continue;
         }
 
         if (entry.synced) {
-             removePendingKey(key);
+             keysToRemove.add(key);
              continue;
         }
 
@@ -180,12 +181,20 @@ export const syncPendingLogs = async () => {
             localStorage.removeItem(key);
         }
 
-        removePendingKey(key);
+        keysToRemove.add(key);
         syncedCount++;
     } catch (e) {
         console.error("Sync retry failed for", key, e);
     }
   }
+
+  if (keysToRemove.size > 0) {
+      // Re-read current pending keys to handle any additions that happened during async ops
+      const currentKeys = getPendingKeys();
+      const newKeys = currentKeys.filter(key => !keysToRemove.has(key));
+      localStorage.setItem(PENDING_KEYS_LIST, JSON.stringify(newKeys));
+  }
+
   return syncedCount;
 };
 
