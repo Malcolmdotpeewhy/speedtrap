@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 let ai: GoogleGenAI | null = null;
@@ -31,6 +30,27 @@ export interface RoadInfo {
   confidence: string;
   futureSegments: PredictiveSegment[];
 }
+
+interface GeminiResponse {
+  limit: number | null;
+  roadName: string;
+  roadType: string;
+  policeDistrict: string;
+  why: string;
+  futureSegments: PredictiveSegment[];
+}
+
+const cleanJson = (text: string): string => {
+  let cleaned = text.trim();
+  // Remove markdown code blocks if present
+  if (cleaned.startsWith('```')) {
+      const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match) {
+          cleaned = match[1];
+      }
+  }
+  return cleaned;
+};
 
 export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing: number, roadName?: string): Promise<RoadInfo> => {
   try {
@@ -79,12 +99,13 @@ export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing:
     });
 
     const text = response.text || "{}";
-    let data: any = {};
+    let data: Partial<GeminiResponse> = {};
     try {
-        data = JSON.parse(text);
+        const cleanedText = cleanJson(text);
+        data = JSON.parse(cleanedText);
     } catch (e) {
         console.error("Failed to parse Gemini JSON", text, e);
-        // Fallback or retry could happen here
+        // Fallback or retry could happen here, but we'll return default/error info below
     }
 
     return {

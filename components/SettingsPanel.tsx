@@ -77,8 +77,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
     const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
 
-    const handleExport = () => {
-        exportData();
+    const handleExport = async () => {
+        await exportData();
         setExportState('success');
         setTimeout(() => setExportState('idle'), 2000);
     };
