@@ -2,10 +2,12 @@
 import { RoadInfo } from './geminiService';
 import { Coordinates, LogEntry } from '../types';
 import { uploadToDrive, isAuthenticated } from './googleDriveService';
+import { idbSet, idbGet, idbGetAllKeys, idbClear, idbGetAll, LOGS_STORE_NAME } from '../utils/indexedDB';
 
 const STORAGE_PREFIX = 'Gemini_API_Data';
 const PENDING_KEYS_LIST = 'Gemini_Pending_Keys';
 const MIGRATION_KEY = 'Gemini_Migration_V1_Done';
+const LOG_COUNT_KEY = 'Gemini_Logs_Count';
 
 // Helper to manage pending keys list
 const getPendingKeys = (): string[] => {
@@ -26,7 +28,7 @@ const addPendingKey = (key: string) => {
 };
 
 const removePendingKey = (key: string) => {
-  let keys = getPendingKeys();
+  const keys = getPendingKeys();
   const index = keys.indexOf(key);
   if (index > -1) {
     keys.splice(index, 1);
@@ -51,11 +53,12 @@ const migratePendingKeys = () => {
                     pendingKeys.push(key);
                 }
             }
-        } catch {}
+        } catch {
+            // Ignore parse errors
+        }
     }
 
     if (pendingKeys.length > 0) {
-        // Merge with existing if any (unlikely if migration hasn't run, but safe)
         const current = getPendingKeys();
         const combined = Array.from(new Set([...current, ...pendingKeys]));
         localStorage.setItem(PENDING_KEYS_LIST, JSON.stringify(combined));
@@ -103,15 +106,16 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
 
   const fullKey = `${metadata.path}${metadata.filename}`;
   
-  // Step A: Immediate Local Fallback (Always save locally first)
+  // Step A: Save to IndexedDB (Logs Store)
   try {
-    localStorage.setItem(fullKey, JSON.stringify(metadata));
-    // Default to adding to pending keys. We remove it later if sync succeeds.
-    // This is safer than adding it only on failure, in case the process crashes before sync finishes.
+    await idbSet(fullKey, metadata, LOGS_STORE_NAME);
     addPendingKey(fullKey);
-    console.log(`[Storage] Saved locally to ${fullKey}`);
+    console.log(`[Storage] Saved to IDB: ${fullKey}`);
+    localStorage.removeItem(LOG_COUNT_KEY); // Invalidate cache
   } catch (e) {
-    console.error("[Storage] Local Quota exceeded", e);
+    console.error("[Storage] IDB Save Error", e);
+    // Fallback to local storage? No, let's assume IDB works or fail gracefully.
+    // If IDB fails, quota might be full there too.
     return false;
   }
 
@@ -124,13 +128,12 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
         // Update local record to synced
         metadata.synced = true;
         metadata.driveId = driveId;
-        localStorage.setItem(fullKey, JSON.stringify(metadata));
+        await idbSet(fullKey, metadata, LOGS_STORE_NAME);
         // Remove from pending keys since it is now synced
         removePendingKey(fullKey);
         console.log(`[Cloud] Sync Successful: ${driveId}`);
     } catch (e) {
         console.error("[Cloud] Upload failed, data remains locally buffered.", e);
-        // Data is already saved locally with synced: false and in pending keys.
     }
   }
 
@@ -140,25 +143,28 @@ export const saveLog = async (roadInfo: RoadInfo, coords: Coordinates, bearing: 
 export const syncPendingLogs = async () => {
   if (!isAuthenticated()) return 0;
   
-  // Ensure we have migrated old logs if necessary
   migratePendingKeys();
 
   let syncedCount = 0;
-  // Use the optimized list
   const keys = getPendingKeys();
 
   for (const key of keys) {
     try {
-        const val = localStorage.getItem(key);
-        // If key doesn't exist anymore, remove it from pending list
-        if (!val) {
+        let entry = await idbGet<LogEntry>(key, LOGS_STORE_NAME);
+
+        // Fallback check in localStorage for legacy data
+        if (!entry) {
+            const val = localStorage.getItem(key);
+            if (val) {
+                 entry = JSON.parse(val);
+            }
+        }
+
+        if (!entry) {
             removePendingKey(key);
             continue;
         }
 
-        const entry = JSON.parse(val) as LogEntry;
-
-        // Double check synced status (in case it was updated elsewhere)
         if (entry.synced) {
              removePendingKey(key);
              continue;
@@ -166,7 +172,14 @@ export const syncPendingLogs = async () => {
 
         await uploadToDrive(entry.filename, JSON.stringify(entry, null, 2), entry.path);
         entry.synced = true;
-        localStorage.setItem(key, JSON.stringify(entry));
+
+        // Save updated status to IDB
+        await idbSet(key, entry, LOGS_STORE_NAME);
+        // Clean up legacy if it existed
+        if (localStorage.getItem(key)) {
+            localStorage.removeItem(key);
+        }
+
         removePendingKey(key);
         syncedCount++;
     } catch (e) {
@@ -176,58 +189,52 @@ export const syncPendingLogs = async () => {
   return syncedCount;
 };
 
-export const getStoredLogsCount = (): number => {
+export const getStoredLogsCount = async (): Promise<number> => {
   const cachedCount = localStorage.getItem(LOG_COUNT_KEY);
   if (cachedCount !== null) {
     return parseInt(cachedCount, 10);
   }
 
-  // Optimization: Object.keys() is often faster than repeated localStorage.key(i) calls
-  // when we need to iterate over many keys.
-  const count = Object.keys(localStorage).filter(key => key.startsWith(STORAGE_PREFIX)).length;
+  const keys = await idbGetAllKeys(LOGS_STORE_NAME);
+  const count = keys.length;
 
   localStorage.setItem(LOG_COUNT_KEY, count.toString());
   return count;
 };
 
-export const clearLogs = () => {
-  // Optimization: Filter once and then remove.
+export const clearLogs = async () => {
+  await idbClear(LOGS_STORE_NAME);
+
+  // Clean legacy
   Object.keys(localStorage)
     .filter(key => key.startsWith(STORAGE_PREFIX))
     .forEach(key => localStorage.removeItem(key));
 
-  // Also clear pending keys list
   localStorage.removeItem(PENDING_KEYS_LIST);
   localStorage.removeItem(MIGRATION_KEY);
+  localStorage.removeItem(LOG_COUNT_KEY);
 };
 
-export const exportData = () => {
+export const exportData = async () => {
   const exportObj: Record<string, any> = {};
   
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith(STORAGE_PREFIX)) {
-      try {
-        const val = localStorage.getItem(key);
-        if (val) {
-          const parts = key.split('/');
-          let currentLevel = exportObj;
-          
-          parts.forEach((part, index) => {
-            if (index === parts.length - 1) {
-              currentLevel[part] = JSON.parse(val);
-            } else {
-              if (!currentLevel[part]) {
-                currentLevel[part] = {};
-              }
-              currentLevel = currentLevel[part];
-            }
-          });
-        }
-      } catch {
-        console.error("Error exporting key", key);
-      }
-    }
+  const entries = await idbGetAll<LogEntry>(LOGS_STORE_NAME);
+
+  for (const entry of entries) {
+      if (!entry.path || !entry.filename) continue;
+
+      const fullPath = entry.path + entry.filename;
+      const pathParts = fullPath.split('/');
+
+      let level = exportObj;
+      pathParts.forEach((part, index) => {
+          if (index === pathParts.length - 1) {
+              level[part] = entry;
+          } else {
+              if (!level[part]) level[part] = {};
+              level = level[part];
+          }
+      });
   }
 
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));

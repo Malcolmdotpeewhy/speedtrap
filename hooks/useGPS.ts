@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Coordinates } from '../types';
+import { calculateBearing } from '../utils/geoUtils';
 
 export interface GpsData {
   speed: number;
@@ -50,10 +51,7 @@ export const useGPS = (loggingEnabled: boolean, cloudEnabled: boolean) => {
         let currBearing = heading || 0;
         if (heading === null && breadcrumbs.current.length > 0) {
           const last = breadcrumbs.current[breadcrumbs.current.length - 1];
-          const y = Math.sin((longitude - last.longitude) * Math.PI/180) * Math.cos(latitude * Math.PI/180);
-          const x = Math.cos(last.latitude * Math.PI/180) * Math.sin(latitude * Math.PI/180) -
-                    Math.sin(last.latitude * Math.PI/180) * Math.cos(latitude * Math.PI/180) * Math.cos((longitude - last.longitude) * Math.PI/180);
-          currBearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+          currBearing = calculateBearing(last, { latitude, longitude });
         }
 
         const newGpsData = {

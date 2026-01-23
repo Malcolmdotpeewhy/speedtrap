@@ -17,6 +17,22 @@ export const calculateDistance = (coords1: Coordinates, coords2: Coordinates): n
 };
 
 /**
+ * Calculates the bearing between two points in degrees (0-360).
+ */
+export const calculateBearing = (start: Coordinates, end: Coordinates): number => {
+  const startLat = start.latitude * Math.PI / 180;
+  const startLng = start.longitude * Math.PI / 180;
+  const endLat = end.latitude * Math.PI / 180;
+  const endLng = end.longitude * Math.PI / 180;
+
+  const y = Math.sin(endLng - startLng) * Math.cos(endLat);
+  const x = Math.cos(startLat) * Math.sin(endLat) -
+            Math.sin(startLat) * Math.cos(endLat) * Math.cos(endLng - startLng);
+  const brng = Math.atan2(y, x);
+  return (brng * 180 / Math.PI + 360) % 360;
+};
+
+/**
  * Generates a robust cache key based on tile coordinates and bearing.
  */
 export const getCacheKey = (lat: number, lng: number, bearing: number): string => {

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { get, set } from 'idb-keyval';
 import { getSpeedLimitAtLocation, RoadInfo } from '../services/geminiService';
 import { saveLog, getStoredLogsCount } from '../services/storageService';
 import { getCacheKey, calculateDistance } from '../utils/geoUtils';
@@ -74,7 +73,7 @@ export const useRoadIntelligence = (
     };
 
     loadCache();
-    setLogCount(getStoredLogsCount());
+    getStoredLogsCount().then(setLogCount);
   }, []);
 
   const persistCache = useCallback(() => {
