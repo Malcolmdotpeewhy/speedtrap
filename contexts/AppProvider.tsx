@@ -70,7 +70,7 @@ export const AppProvider: React.FC<{
 }> = ({ children, isGoogleSignedIn, googleUser, isSyncing, handleManualSync }) => {
 
   const settings = useSettings();
-  const gps = useGPS(settings.loggingEnabled, settings.cloudEnabled);
+  const gps = useGPS();
 
   const playBeep = useCallback((freq: number, dur: number, gainVal: number = 0.08) => {
     if (!settings.alertsEnabled) return;

@@ -66,7 +66,7 @@ const DashboardView: React.FC = () => {
 
             {showPolice && roadInfo.policeDistrict && (
               <div className="flex items-center gap-1.5 bg-indigo-900/40 border border-indigo-500/30 px-2.5 py-1 rounded-full text-indigo-200">
-                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-9-4z" opacity="0.4"/>
                    <path d="M12 8.5l2.5 1.5-1 3 2.5.5-2.5 1.5.5 3-2.5-2-2.5 2 .5-3-2.5-1.5 2.5-.5-1-3 2.5-1.5z" />
                 </svg>

@@ -11,7 +11,7 @@ export interface GpsData {
 
 export type GpsSignalLevel = 'lost' | 'low' | 'medium' | 'high';
 
-export const useGPS = (loggingEnabled: boolean, cloudEnabled: boolean) => {
+export const useGPS = () => {
   const [gpsData, setGpsData] = useState<GpsData>({
     speed: 0,
     bearing: 0,
@@ -85,7 +85,7 @@ export const useGPS = (loggingEnabled: boolean, cloudEnabled: boolean) => {
         if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
         if (watchdogRef.current) clearInterval(watchdogRef.current);
     };
-  }, [loggingEnabled, cloudEnabled]); // Keeping dependencies similar to original App.tsx
+  }, []);
 
   return { gpsData, gpsSignalLevel, error, breadcrumbs };
 };
