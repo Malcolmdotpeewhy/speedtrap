@@ -59,6 +59,18 @@ describe('geminiService', () => {
     expect(result.roadName).toBe("Identifying Road");
   });
 
+  it('should parse JSON wrapped in markdown code blocks with extra text', async () => {
+    const mockResponse = {
+      text: "Here is the data you requested:\n```json\n{\n\"limit\": 65,\n\"roadName\": \"Interstate 5\",\n\"roadType\": \"Freeway\",\n\"policeDistrict\": \"D2\",\n\"why\": \"Verified\",\n\"futureSegments\": []\n}\n```\nHope this helps!"
+    };
+    mockGenerateContent.mockResolvedValue(mockResponse);
+
+    const result = await getSpeedLimitAtLocation(10, 10, 0);
+
+    expect(result.limit).toBe(65);
+    expect(result.roadName).toBe('Interstate 5');
+  });
+
   it('should handle API missing key', async () => {
     localStorage.removeItem('gemini_api_key');
     // Also ensure import.meta.env is not providing a key in the test environment if possible,

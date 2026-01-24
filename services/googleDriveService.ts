@@ -10,7 +10,55 @@ export interface GoogleUser {
     picture: string;
 }
 
-let tokenClient: any;
+interface TokenClient {
+    requestAccessToken: (config?: { prompt?: string }) => void;
+}
+
+interface TokenResponse {
+    access_token: string;
+    error?: unknown;
+}
+
+interface GapiClient {
+    init: (config: { discoveryDocs: string[] }) => Promise<void>;
+    getToken: () => unknown | null;
+    setToken: (token: unknown | null) => void;
+    drive: {
+        files: {
+            list: (config: { q: string; fields: string; spaces: string }) => Promise<{ result: { files: { id: string; name: string }[] } }>;
+            create: (config: { resource: { name: string; mimeType: string; parents: string[] }; fields: string }) => Promise<{ result: { id: string } }>;
+        };
+    };
+    request: (config: {
+        path: string;
+        method: string;
+        params: { uploadType: string };
+        headers: { 'Content-Type': string };
+        body: string;
+    }) => Promise<{ result: { id: string } }>;
+}
+
+interface GoogleWindow extends Window {
+    gapi?: {
+        load: (lib: string, callback: () => void) => void;
+        client: GapiClient;
+    };
+    google?: {
+        accounts: {
+            oauth2: {
+                initTokenClient: (config: {
+                    client_id: string;
+                    scope: string;
+                    callback: (resp: TokenResponse) => Promise<void>;
+                }) => TokenClient;
+            };
+        };
+    };
+}
+
+declare const window: GoogleWindow;
+
+let tokenClient: TokenClient | undefined;
 let gapiInited = false;
 let gisInited = false;
 let accessToken: string | null = null;
@@ -62,13 +110,15 @@ const fetchUserProfile = async (token: string) => {
 export const initGoogleDrive = async (): Promise<boolean> => {
   return new Promise((resolve) => {
     const checkGapi = () => {
-      if ((window as any).gapi) {
-        (window as any).gapi.load('client', async () => {
-          await (window as any).gapi.client.init({
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-          });
-          gapiInited = true;
-          if (gisInited) finishInit();
+      if (window.gapi) {
+        window.gapi.load('client', async () => {
+          if (window.gapi) {
+            await window.gapi.client.init({
+              discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            });
+            gapiInited = true;
+            if (gisInited) finishInit();
+          }
         });
       } else {
         setTimeout(checkGapi, 100);
@@ -76,11 +126,11 @@ export const initGoogleDrive = async (): Promise<boolean> => {
     };
 
     const checkGis = () => {
-      if ((window as any).google) {
-        tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+      if (window.google) {
+        tokenClient = window.google.accounts.oauth2.initTokenClient({
           client_id: CLIENT_ID,
           scope: SCOPES,
-          callback: async (resp: any) => {
+          callback: async (resp: TokenResponse) => {
             if (resp.error !== undefined) {
               throw (resp);
             }
@@ -115,7 +165,7 @@ export const initGoogleDrive = async (): Promise<boolean> => {
 
 export const signInToDrive = () => {
   if (tokenClient) {
-    if ((window as any).gapi.client.getToken() === null) {
+    if (window.gapi && window.gapi.client.getToken() === null) {
       tokenClient.requestAccessToken({prompt: 'consent'});
     } else {
       tokenClient.requestAccessToken({prompt: ''});
@@ -128,8 +178,8 @@ export const signOutDrive = () => {
     currentUser = null;
     folderCache.clear(); // Clear the cache on sign out
     localStorage.removeItem('drive_access_token');
-    if ((window as any).gapi && (window as any).gapi.client) {
-        (window as any).gapi.client.setToken(null);
+    if (window.gapi && window.gapi.client) {
+        window.gapi.client.setToken(null);
     }
     notifyAuthListeners();
 };
@@ -148,7 +198,11 @@ export const getOrCreateFolder = async (folderName: string, parentId: string = '
   try {
     const safeFolderName = folderName.replace(/'/g, "\\'");
     const q = `mimeType='application/vnd.google-apps.folder' and name='${safeFolderName}' and '${parentId}' in parents and trash=false`;
-    const response = await (window as any).gapi.client.drive.files.list({
+
+    // Safety check for gapi
+    if (!window.gapi) throw new Error("GAPI not initialized");
+
+    const response = await window.gapi.client.drive.files.list({
       q: q,
       fields: 'files(id, name)',
       spaces: 'drive',
@@ -163,7 +217,7 @@ export const getOrCreateFolder = async (folderName: string, parentId: string = '
         mimeType: 'application/vnd.google-apps.folder',
         parents: [parentId],
       };
-      const createResponse = await (window as any).gapi.client.drive.files.create({
+      const createResponse = await window.gapi.client.drive.files.create({
         resource: fileMetadata,
         fields: 'id',
       });
@@ -180,6 +234,7 @@ export const getOrCreateFolder = async (folderName: string, parentId: string = '
 
 export const uploadToDrive = async (filename: string, content: string, path: string): Promise<string> => {
     if (!isAuthenticated()) throw new Error("Not Authenticated");
+    if (!window.gapi) throw new Error("GAPI not initialized");
 
     // Ensure folder structure: Gemini_API_Data / YYYY / MM / DD / RoadName
     const parts = path.split('/').filter(p => p);
@@ -210,7 +265,7 @@ export const uploadToDrive = async (filename: string, content: string, path: str
         content +
         close_delim;
 
-    const request = (window as any).gapi.client.request({
+    const request = window.gapi.client.request({
         'path': '/upload/drive/v3/files',
         'method': 'POST',
         'params': {'uploadType': 'multipart'},
