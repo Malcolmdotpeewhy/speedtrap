@@ -195,8 +195,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     <section className="space-y-4 border-t border-white/5 pt-6">
                         <h3 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-2">API Configuration</h3>
                         <div className="p-4 bg-slate-800/50 rounded-xl space-y-2">
-                            <label className="block text-sm font-bold text-slate-300">Gemini API Key</label>
+                            <label htmlFor="gemini-api-key" className="block text-sm font-bold text-slate-300">Gemini API Key</label>
                             <input
+                                id="gemini-api-key"
                                 type="password"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
