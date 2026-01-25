@@ -7,3 +7,7 @@
 ## 2025-05-14 - Mobile Touch Targets in Dense UIs
 **Learning:** In a dense dashboard UI, explicitly setting min-dimensions for buttons (44x44px) is critical for usability, even when the visual icon is smaller.
 **Action:** Always apply `min-w-[44px] min-h-[44px]` to interactive elements in mobile-first views.
+
+## 2025-05-15 - Explicit Form Label Association
+**Learning:** Even with clear visual design (label above input), screen readers fail to associate labels with inputs unless explicitly linked via `htmlFor` and `id`, especially when inputs lack unique `aria-label` attributes.
+**Action:** Always enforce `htmlFor` + `id` pairing for text inputs, even if they look clearly labeled visually.
