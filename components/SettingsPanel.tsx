@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import { Cloud, Check } from 'lucide-react';
 import GlassButton from './GlassButton';
@@ -15,6 +15,8 @@ const Toggle: React.FC<{
     description?: string;
 }> = ({ label, checked, onChange, description }) => {
     const [justChanged, setJustChanged] = useState(false);
+    const labelId = useId();
+    const descId = useId();
 
     const handleClick = () => {
         onChange(!checked);
@@ -28,11 +30,12 @@ const Toggle: React.FC<{
             className="w-full flex items-center justify-between p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             role="switch"
             aria-checked={checked}
-            aria-label={`Toggle ${label}`}
+            aria-labelledby={labelId}
+            aria-describedby={description ? descId : undefined}
         >
             <div className="flex flex-col items-start text-left">
-                <span className="font-bold text-slate-200">{label}</span>
-                {description && <span className="text-xs text-slate-500">{description}</span>}
+                <span id={labelId} className="font-bold text-slate-200">{label}</span>
+                {description && <span id={descId} className="text-xs text-slate-500">{description}</span>}
             </div>
             <div className="flex items-center gap-2">
                  {justChanged && <span className="text-[10px] font-bold text-emerald-400 uppercase animate-fade-in-out">Saved</span>}
@@ -84,11 +87,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex justify-end animate-fade-in">
+        <div
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex justify-end animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-title"
+        >
             <div className="w-full max-w-md h-full bg-slate-900 border-l border-white/10 shadow-2xl overflow-y-auto pb-10">
                 {/* Header */}
                 <div className="sticky top-0 bg-slate-900/95 backdrop-blur z-10 border-b border-white/5 p-4 flex items-center justify-between">
-                    <h2 className="text-xl font-black italic tracking-tighter text-white">SYSTEM<span className="text-blue-500">CONFIG</span></h2>
+                    <h2 id="settings-title" className="text-xl font-black italic tracking-tighter text-white">SYSTEM<span className="text-blue-500">CONFIG</span></h2>
                     <GlassButton
                         onClick={() => setShowSettings(false)}
                         label="Close Settings"
@@ -104,15 +112,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Alerts & Feedback</h3>
 
                         <div className="p-4 bg-slate-800/50 rounded-xl">
-                            <label className="block text-sm font-bold text-slate-300 mb-2">Speed Threshold (+{threshold} mph)</label>
+                            <label htmlFor="speed-threshold" className="block text-sm font-bold text-slate-300 mb-2">Speed Threshold (+{threshold} mph)</label>
                             <div className="flex items-center gap-4">
                                 <input
+                                    id="speed-threshold"
                                     type="range"
                                     min="0" max="15" step="1"
                                     value={threshold}
                                     onChange={(e) => setThreshold(Number(e.target.value))}
                                     className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 min-h-[44px]"
-                                    aria-label="Adjust Speed Threshold"
                                 />
                                 <span className="text-xl font-mono font-bold text-blue-400 w-8 text-center">{threshold}</span>
                             </div>
@@ -156,23 +164,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                             <div className="space-y-4 p-4 bg-blue-900/10 rounded-xl border border-blue-500/20">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 mb-2">Opacity ({Math.round(opacity * 100)}%)</label>
+                                    <label htmlFor="widget-opacity" className="block text-xs font-bold text-slate-400 mb-2">Opacity ({Math.round(opacity * 100)}%)</label>
                                     <input
+                                        id="widget-opacity"
                                         type="range" min="0.2" max="1" step="0.1"
                                         value={opacity}
                                         onChange={(e) => setOpacity(Number(e.target.value))}
                                         className="w-full accent-blue-500 min-h-[44px]"
-                                        aria-label="Widget Opacity"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 mb-2">Scale ({scale}x)</label>
+                                    <label htmlFor="widget-scale" className="block text-xs font-bold text-slate-400 mb-2">Scale ({scale}x)</label>
                                     <input
+                                        id="widget-scale"
                                         type="range" min="0.5" max="1.5" step="0.1"
                                         value={scale}
                                         onChange={(e) => setScale(Number(e.target.value))}
                                         className="w-full accent-blue-500 min-h-[44px]"
-                                        aria-label="Widget Scale"
                                     />
                                 </div>
                                 <Toggle
@@ -195,8 +203,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     <section className="space-y-4 border-t border-white/5 pt-6">
                         <h3 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-2">API Configuration</h3>
                         <div className="p-4 bg-slate-800/50 rounded-xl space-y-2">
-                            <label className="block text-sm font-bold text-slate-300">Gemini API Key</label>
+                            <label htmlFor="gemini-api-key" className="block text-sm font-bold text-slate-300">Gemini API Key</label>
                             <input
+                                id="gemini-api-key"
                                 type="password"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
