@@ -7,3 +7,7 @@
 ## 2025-05-14 - Mobile Touch Targets in Dense UIs
 **Learning:** In a dense dashboard UI, explicitly setting min-dimensions for buttons (44x44px) is critical for usability, even when the visual icon is smaller.
 **Action:** Always apply `min-w-[44px] min-h-[44px]` to interactive elements in mobile-first views.
+
+## 2025-05-15 - Async State Safety
+**Learning:** When implementing delayed micro-feedback (e.g. "Success" state reverting to "Idle"), always use `useEffect` cleanup to prevent state updates on unmounted components, especially in modal dialogs users might close quickly.
+**Action:** Wrap feedback timers in `useEffect` with return cleanup.
