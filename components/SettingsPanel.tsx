@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../contexts/AppProvider';
 import { Cloud, Check } from 'lucide-react';
 import GlassButton from './GlassButton';
@@ -82,6 +82,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         setExportState('success');
         setTimeout(() => setExportState('idle'), 2000);
     };
+
+    const [syncState, setSyncState] = useState<'idle' | 'success'>('idle');
+    const prevIsSyncing = useRef(isSyncing);
+
+    useEffect(() => {
+        if (prevIsSyncing.current && !isSyncing) {
+            setSyncState('success');
+            const timer = setTimeout(() => setSyncState('idle'), 2000);
+            return () => clearTimeout(timer);
+        }
+        prevIsSyncing.current = isSyncing;
+    }, [isSyncing]);
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex justify-end animate-fade-in">
@@ -298,14 +310,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                      </div>
                                                      <button
                                                         onClick={handleManualSync}
-                                                        disabled={isSyncing}
-                                                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                                        disabled={isSyncing || syncState === 'success'}
+                                                        className={`w-full text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors ${
+                                                            syncState === 'success' ? 'bg-emerald-600' : 'bg-blue-600 hover:bg-blue-500 disabled:opacity-50'
+                                                        }`}
                                                      >
                                                          {isSyncing ? (
                                                              <>
                                                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
                                                                 Syncing...
                                                              </>
+                                                         ) : syncState === 'success' ? (
+                                                            <>
+                                                                <Check className="w-4 h-4" aria-hidden="true" />
+                                                                Synced!
+                                                            </>
                                                          ) : (
                                                              <>
                                                                 <Cloud className="w-4 h-4" aria-hidden="true" />
