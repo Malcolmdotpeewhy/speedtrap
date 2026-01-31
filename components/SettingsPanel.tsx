@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppProvider';
-import { Cloud, Check } from 'lucide-react';
+import { Cloud, Check, Eye, EyeOff } from 'lucide-react';
 import GlassButton from './GlassButton';
 
 // "Palette" requirement: 44x44px touch targets.
@@ -76,6 +76,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     } = useApp();
 
     const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
+    const [showKey, setShowKey] = useState(false);
 
     const handleExport = async () => {
         await exportData();
@@ -104,9 +105,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Alerts & Feedback</h3>
 
                         <div className="p-4 bg-slate-800/50 rounded-xl">
-                            <label className="block text-sm font-bold text-slate-300 mb-2">Speed Threshold (+{threshold} mph)</label>
+                            <label htmlFor="threshold-slider" className="block text-sm font-bold text-slate-300 mb-2">Speed Threshold (+{threshold} mph)</label>
                             <div className="flex items-center gap-4">
                                 <input
+                                    id="threshold-slider"
                                     type="range"
                                     min="0" max="15" step="1"
                                     value={threshold}
@@ -156,8 +158,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                             <div className="space-y-4 p-4 bg-blue-900/10 rounded-xl border border-blue-500/20">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 mb-2">Opacity ({Math.round(opacity * 100)}%)</label>
+                                    <label htmlFor="widget-opacity" className="block text-xs font-bold text-slate-400 mb-2">Opacity ({Math.round(opacity * 100)}%)</label>
                                     <input
+                                        id="widget-opacity"
                                         type="range" min="0.2" max="1" step="0.1"
                                         value={opacity}
                                         onChange={(e) => setOpacity(Number(e.target.value))}
@@ -166,8 +169,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 mb-2">Scale ({scale}x)</label>
+                                    <label htmlFor="widget-scale" className="block text-xs font-bold text-slate-400 mb-2">Scale ({scale}x)</label>
                                     <input
+                                        id="widget-scale"
                                         type="range" min="0.5" max="1.5" step="0.1"
                                         value={scale}
                                         onChange={(e) => setScale(Number(e.target.value))}
@@ -195,14 +199,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     <section className="space-y-4 border-t border-white/5 pt-6">
                         <h3 className="text-xs font-black text-purple-500 uppercase tracking-widest mb-2">API Configuration</h3>
                         <div className="p-4 bg-slate-800/50 rounded-xl space-y-2">
-                            <label className="block text-sm font-bold text-slate-300">Gemini API Key</label>
-                            <input
-                                type="password"
-                                value={apiKey}
-                                onChange={(e) => setApiKey(e.target.value)}
-                                placeholder="Enter your Gemini API Key"
-                                className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:border-blue-500 focus:outline-none min-h-[44px]"
-                            />
+                            <label htmlFor="api-key" className="block text-sm font-bold text-slate-300">Gemini API Key</label>
+                            <div className="relative">
+                                <input
+                                    id="api-key"
+                                    type={showKey ? "text" : "password"}
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    placeholder="Enter your Gemini API Key"
+                                    className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 pr-10 focus:border-blue-500 focus:outline-none min-h-[44px]"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowKey(!showKey)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded p-1"
+                                    aria-label={showKey ? "Hide API Key" : "Show API Key"}
+                                >
+                                    {showKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                             <p className="text-[10px] text-slate-500">
                                 Required for Speed Limits & Road Info. Your key is stored locally on this device.
                             </p>
