@@ -77,11 +77,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
     const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
     const [showApiKey, setShowApiKey] = useState(false);
+    const [syncSuccess, setSyncSuccess] = useState(false);
 
     const handleExport = async () => {
         await exportData();
         setExportState('success');
         setTimeout(() => setExportState('idle'), 2000);
+    };
+
+    const handleSyncClick = async () => {
+        try {
+            await handleManualSync();
+            setSyncSuccess(true);
+            setTimeout(() => setSyncSuccess(false), 2000);
+        } catch (e) {
+            console.error('Sync failed', e);
+        }
     };
 
     return (
@@ -309,14 +320,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                          </button>
                                                      </div>
                                                      <button
-                                                        onClick={handleManualSync}
-                                                        disabled={isSyncing}
-                                                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                                        onClick={handleSyncClick}
+                                                        disabled={isSyncing || syncSuccess}
+                                                        className={`w-full font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-all duration-300 ${
+                                                            syncSuccess
+                                                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                                                : 'bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white'
+                                                        }`}
                                                      >
                                                          {isSyncing ? (
                                                              <>
                                                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
                                                                 Syncing...
+                                                             </>
+                                                         ) : syncSuccess ? (
+                                                             <>
+                                                                <Check className="w-4 h-4" aria-hidden="true" />
+                                                                Synced!
                                                              </>
                                                          ) : (
                                                              <>
