@@ -13,7 +13,8 @@ const Toggle: React.FC<{
     checked: boolean;
     onChange: (val: boolean) => void;
     description?: string;
-}> = ({ label, checked, onChange, description }) => {
+    ariaLabel?: string;
+}> = ({ label, checked, onChange, description, ariaLabel }) => {
     const [justChanged, setJustChanged] = useState(false);
 
     const handleClick = () => {
@@ -28,7 +29,7 @@ const Toggle: React.FC<{
             className="w-full flex items-center justify-between p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             role="switch"
             aria-checked={checked}
-            aria-label={`Toggle ${label}`}
+            aria-label={ariaLabel || `Toggle ${label}`}
         >
             <div className="flex flex-col items-start text-left">
                 <span className="font-bold text-slate-200">{label}</span>
@@ -76,6 +77,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     } = useApp();
 
     const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
+    const [syncState, setSyncState] = useState<'idle' | 'success'>('idle');
     const [showApiKey, setShowApiKey] = useState(false);
 
     const handleExport = async () => {
@@ -278,6 +280,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                             label=""
                                             checked={cloudEnabled}
                                             onChange={setCloudEnabled}
+                                            ariaLabel="Toggle Google Drive Sync"
                                         />
                                      </div>
 
@@ -309,14 +312,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                                          </button>
                                                      </div>
                                                      <button
-                                                        onClick={handleManualSync}
+                                                        onClick={async () => {
+                                                            await handleManualSync();
+                                                            setSyncState('success');
+                                                            setTimeout(() => setSyncState('idle'), 2000);
+                                                        }}
                                                         disabled={isSyncing}
-                                                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                                        className={`w-full font-bold py-3 rounded-lg flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors ${
+                                                            syncState === 'success' ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50'
+                                                        }`}
                                                      >
                                                          {isSyncing ? (
                                                              <>
                                                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
                                                                 Syncing...
+                                                             </>
+                                                         ) : syncState === 'success' ? (
+                                                             <>
+                                                                <Check className="w-4 h-4" aria-hidden="true" />
+                                                                Synced!
                                                              </>
                                                          ) : (
                                                              <>
