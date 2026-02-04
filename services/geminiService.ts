@@ -40,16 +40,14 @@ interface GeminiResponse {
   futureSegments: PredictiveSegment[];
 }
 
-const cleanJson = (text: string): string => {
+export const cleanJson = (text: string): string => {
   let cleaned = text.trim();
   // Remove markdown code blocks if present
-  if (cleaned.startsWith('```')) {
-      const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (match) {
-          cleaned = match[1];
-      }
+  const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (match) {
+      cleaned = match[1];
   }
-  return cleaned;
+  return cleaned.trim();
 };
 
 export const getSpeedLimitAtLocation = async (lat: number, lng: number, bearing: number, roadName?: string): Promise<RoadInfo> => {
