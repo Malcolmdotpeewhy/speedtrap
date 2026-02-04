@@ -48,7 +48,7 @@ interface AppContextType {
   isGoogleSignedIn: boolean;
   googleUser: GoogleUser | null;
   isSyncing: boolean;
-  handleManualSync: () => void;
+  handleManualSync: () => Promise<void>;
 
   // UI State
   isLocked: boolean;
@@ -66,7 +66,7 @@ export const AppProvider: React.FC<{
     isGoogleSignedIn: boolean;
     googleUser: GoogleUser | null;
     isSyncing: boolean;
-    handleManualSync: () => void;
+    handleManualSync: () => Promise<void>;
 }> = ({ children, isGoogleSignedIn, googleUser, isSyncing, handleManualSync }) => {
 
   const settings = useSettings();
@@ -130,7 +130,9 @@ export const AppProvider: React.FC<{
     isLocked, setIsLocked,
     viewMode, setViewMode,
     showSettings, setShowSettings
-  }), [
+  }),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [
     settings.threshold, settings.setThreshold,
     settings.alertsEnabled, settings.setAlertsEnabled,
     settings.chimesEnabled, settings.setChimesEnabled,
