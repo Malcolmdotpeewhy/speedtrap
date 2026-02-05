@@ -78,6 +78,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
     const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
     const [syncState, setSyncState] = useState<'idle' | 'success'>('idle');
+    const [clearLogState, setClearLogState] = useState<'idle' | 'confirm' | 'success'>('idle');
     const [showApiKey, setShowApiKey] = useState(false);
 
     const handleExport = async () => {
@@ -90,6 +91,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         await handleManualSync();
         setSyncState('success');
         setTimeout(() => setSyncState('idle'), 2000);
+    };
+
+    const handleClearLogs = () => {
+        if (clearLogState === 'idle') {
+            setClearLogState('confirm');
+            setTimeout(() => setClearLogState(prev => prev === 'confirm' ? 'idle' : prev), 3000);
+        } else if (clearLogState === 'confirm') {
+            clearLogs();
+            setLogCount(0);
+            setClearLogState('success');
+            setTimeout(() => setClearLogState('idle'), 2000);
+        }
     };
 
     return (
@@ -266,15 +279,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                             )}
                                         </button>
                                         <button
-                                            onClick={() => {
-                                                if(confirm('Clear all logs?')) {
-                                                    clearLogs();
-                                                    setLogCount(0);
-                                                }
-                                            }}
-                                            className="flex-1 bg-red-900/50 hover:bg-red-900 text-red-200 text-xs font-bold py-3 rounded-lg min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                            onClick={handleClearLogs}
+                                            className={`flex-1 text-xs font-bold py-3 rounded-lg min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-all duration-200 ${
+                                                clearLogState === 'confirm' ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse' :
+                                                clearLogState === 'success' ? 'bg-emerald-600 text-white' :
+                                                'bg-red-900/50 hover:bg-red-900 text-red-200'
+                                            }`}
                                         >
-                                            Clear
+                                            <span aria-live="polite">
+                                                {clearLogState === 'confirm' ? 'Confirm?' :
+                                                 clearLogState === 'success' ? 'Cleared!' :
+                                                 'Clear'}
+                                            </span>
                                         </button>
                                     </div>
                                 </div>
