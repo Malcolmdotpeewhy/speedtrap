@@ -79,6 +79,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     const [exportState, setExportState] = useState<'idle' | 'success'>('idle');
     const [syncState, setSyncState] = useState<'idle' | 'success'>('idle');
     const [showApiKey, setShowApiKey] = useState(false);
+    const [confirmClear, setConfirmClear] = useState(false);
+
+    React.useEffect(() => {
+        if (confirmClear) {
+            const timer = setTimeout(() => setConfirmClear(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [confirmClear]);
 
     const handleExport = async () => {
         await exportData();
@@ -267,14 +275,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                         </button>
                                         <button
                                             onClick={() => {
-                                                if(confirm('Clear all logs?')) {
+                                                if (confirmClear) {
                                                     clearLogs();
                                                     setLogCount(0);
+                                                    setConfirmClear(false);
+                                                } else {
+                                                    setConfirmClear(true);
                                                 }
                                             }}
-                                            className="flex-1 bg-red-900/50 hover:bg-red-900 text-red-200 text-xs font-bold py-3 rounded-lg min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                            className={`flex-1 text-xs font-bold py-3 rounded-lg min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors ${
+                                                confirmClear
+                                                    ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse'
+                                                    : 'bg-red-900/50 hover:bg-red-900 text-red-200'
+                                            }`}
                                         >
-                                            Clear
+                                            {confirmClear ? 'Confirm?' : 'Clear'}
                                         </button>
                                     </div>
                                 </div>
