@@ -11,3 +11,7 @@
 ## 2025-05-14 - Sensitive Data Visibility
 **Learning:** For long, sensitive strings like API keys, users need a way to verify input without permanently exposing the secret. Mobile keyboards often cause typos.
 **Action:** Always include a "Show/Hide" toggle (using Eye/EyeOff icons) for password-style inputs that contain complex configuration data.
+
+## 2025-05-15 - Inline Destructive Confirmation
+**Learning:** Native `confirm()` dialogs disrupt the user flow and feel jarring in a polished UI. Inline "double-tap" confirmation (tap to arm, tap to confirm) provides safety without breaking immersion.
+**Action:** Implement timeout-based inline confirmation for destructive actions instead of blocking browser alerts.
